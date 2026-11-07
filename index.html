@@ -167,6 +167,34 @@ details.tbl th{color:var(--ink-2);font-size:12px}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:9px 12px;font-size:14px}
 .done{background:var(--good-soft);color:var(--good);border-radius:12px;padding:12px 14px;font-weight:600}
 @media (prefers-reduced-motion:no-preference){ .btn,.chip,.tick{transition:background .12s,border-color .12s} }
+[hidden]{display:none!important}
+.landing{min-height:calc(100dvh - 140px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:28px 0 8px}
+.landing .logo svg{width:96px;height:96px;display:block}
+.eyebrow{font:600 13px var(--text);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.hero{font:700 clamp(40px,12.5vw,58px)/.98 var(--display);text-transform:uppercase;max-width:11em;text-wrap:balance}
+.landstats{display:flex;gap:10px;width:100%}
+.landstats div{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.landstats b{display:block;font:700 30px/1 var(--display)} .landstats span{font-size:12px;color:var(--ink-2)}
+.upnext{font-size:15px;color:var(--ink-2)} .upnext b{color:var(--ink);font-weight:600}
+.btn.big{min-height:56px;font-size:18px;width:100%;letter-spacing:.01em}
+.exname{background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer;text-decoration:underline dotted var(--ink-3);text-underline-offset:4px}
+.prow{display:flex;gap:8px;align-items:stretch} .prow .pick{flex:1;min-width:0}
+.info{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:56px;font-size:13px;font-weight:600;color:var(--accent)}
+.bodies{display:flex;gap:8px;justify-content:center}
+.bodies figure{margin:0;flex:1;min-width:0;max-width:190px;text-align:center}
+.bodies figcaption{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+svg.body{display:block;width:100%;height:auto}
+.bbase{fill:var(--surface-2)}
+.m{fill:var(--surface);stroke:var(--line);stroke-width:.8}
+.m.p{fill:var(--accent);stroke:var(--accent)}
+.m.s{fill:var(--accent);fill-opacity:.38;stroke:var(--accent);stroke-opacity:.55}
+.keys{display:flex;gap:14px;justify-content:center;font-size:13px;color:var(--ink-2)}
+.keys i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:5px;border:1px solid var(--accent)}
+.keys i.p{background:var(--accent)} .keys i.s{background:var(--accent);opacity:.38}
+ol.steps,ul.watch{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+ol.steps li::marker{font-weight:700;color:var(--accent)}
+ul.watch li::marker{color:var(--warn)}
+.mus{font-size:14px}.mus b{font-weight:600}
 </style>
 </head>
 <body>
@@ -247,6 +275,94 @@ const LIB=[
 ['jump-rope','Jump rope','Cardio','cd','Weighted rope','k','walk,bike']
 ].map(([id,name,group,type,equip,j,alts])=>({id,name,group,type,equip,joints:[...j].map(c=>J[c]),alts:alts?alts.split(','):[]}));
 
+const MUSCLE={chest:'Chest','delts-front':'Front delts','delts-side':'Side delts','delts-rear':'Rear delts',biceps:'Biceps',triceps:'Triceps',forearms:'Forearms',abs:'Abs',obliques:'Obliques',traps:'Traps (upper back)','mid-back':'Mid back (rhomboids)',lats:'Lats','lower-back':'Lower back',glutes:'Glutes',quads:'Quads',hamstrings:'Hamstrings',adductors:'Inner thighs','hip-flexors':'Hip flexors',calves:'Calves'};
+const GROUP_MUSCLES={Legs:['quads,glutes','hamstrings,calves'],'Hinge & glutes':['glutes,hamstrings','lower-back'],Push:['chest,delts-front','triceps'],Pull:['lats,mid-back','biceps'],Core:['abs','obliques'],Mobility:['',''],Cardio:['quads,calves','glutes,hamstrings']};
+// id: [main muscles, helping muscles, how-to steps (|), watch for (|)]
+const GUIDE={
+'leg-press':['quads,glutes','hamstrings,calves,adductors',"Set the seat so your knees bend to about 90 degrees at the bottom, with your back and hips flat against the pad.|Place your feet shoulder width apart on the middle of the platform, toes turned out slightly.|Release the safety handles and lower the platform slowly over 2 to 3 seconds.|Press through your whole foot until your legs are nearly straight, then lower again.","Never lock your knees out at the top. Stop just short of straight.|Keep your hips and lower back flat on the pad. If your hips curl up, lower the platform less deep.|Keep your knees pointing the same way as your toes, not caving in.|Feet very low on the platform load the knees more. Feet very high shift the work to the glutes and hamstrings."],
+'goblet-squat':['quads,glutes','adductors,hamstrings,abs,lower-back',"Hold one kettlebell upright against your chest with both hands, elbows pointing down.|Stand with feet a little wider than your shoulders, toes turned out slightly.|Brace your core, sit down between your knees and keep your chest tall.|Go as deep as you can with your heels flat, then push the floor away to stand.","Keep your heels down. If they lift, squat to a bench or box instead.|Do not let your knees cave inward. Push them out over your toes.|Do not round your lower back at the bottom. Stop where you can keep it flat.|Start light. A bell you can lift for 10 clean reps is the right size."],
+'leg-curl':['hamstrings','calves,glutes',"Adjust the seat and pad so the pad rests just above your heels and your knees line up with the machine's pivot.|Hold the handles and keep your back against the pad.|Curl your heels toward your glutes in a smooth 1 to 2 second pull.|Return slowly over 2 to 3 seconds until your legs are almost straight.","Do not swing or let your hips lift off the seat.|Use a weight you can control on the way back. Do not let the stack drop.|Stop if you feel a pinch behind the knee or a cramp. Lower the weight or the range."],
+'leg-ext':['quads','hip-flexors',"Set the back so your knees line up with the pivot and the pad rests on your lower shins.|Sit tall and hold the handles.|Straighten your legs with control until they are almost straight, and squeeze your thighs for a moment.|Lower slowly over 2 to 3 seconds without letting the stack touch.","Go lighter than you think. Heavy leg extensions put a lot of strain across the knee.|Do not kick the weight up or snap the knees straight.|Skip this one if it causes pain in or around the kneecap, and use the leg curl or glute bridge instead."],
+'calf-raise':['calves','',"Stand or sit with the balls of your feet on the platform and your heels hanging off.|Lower your heels slowly until you feel a stretch in your calves.|Press up onto your toes as high as you can and pause for a second.|Lower slowly and repeat.","Use the full range of motion. Short bouncy reps waste the work.|Keep your knees soft and your ankles straight. Do not roll to the outside of your feet.|Hold something for balance if you are standing."],
+'split-squat':['quads,glutes','hamstrings,adductors,abs',"Stand in a long staggered stance with one foot forward and one back, holding dumbbells at your sides.|Keep your torso upright and your front foot flat.|Bend both knees and lower your back knee straight down toward the floor.|Press through the front foot to stand. Finish all reps, then switch legs.","The step should be long enough that your front knee stays roughly over your ankle.|Do not let the front knee cave in.|Hold a rack or wall with one hand if you wobble.|Shorten the depth or skip it if the front knee hurts."],
+'step-up':['quads,glutes','hamstrings,calves',"Stand facing a sturdy bench or box about knee height, with dumbbells at your sides.|Place your whole front foot on the box.|Press through that heel to stand up, bringing the other foot up to meet it.|Step back down slowly, controlling the lowering, then repeat. Switch legs.","Let the leading leg do the work. Do not push off the back foot.|Pick a box height where you can keep your torso upright and your knee steady.|Take your time on the way down. That is where most of the control is."],
+'db-rdl':['hamstrings,glutes','lower-back,forearms,traps',"Stand tall holding dumbbells in front of your thighs, feet hip width apart, knees slightly bent.|Push your hips straight back, as if closing a car door with your backside.|Slide the weights down your thighs with a flat back until you feel a stretch in the back of your legs, often around mid-shin.|Squeeze your glutes and drive your hips forward to stand tall.","Keep the weights close to your legs the whole way.|Keep your back flat. If it starts to round, stop lowering sooner.|Do not turn it into a squat. Your knees stay softly bent while your hips move back.|Look at a spot on the floor a few feet ahead and keep your neck neutral."],
+'kb-deadlift':['glutes,hamstrings','quads,lower-back,forearms,traps',"Stand with feet hip width apart and the kettlebell on the floor between your feet, in line with your ankles.|Push your hips back, bend your knees and grab the handle with both hands, back flat and chest up.|Brace your core and push the floor away to stand tall, squeezing your glutes at the top.|Hinge back down with control and set the bell down. Do not drop it.","Keep your spine flat. Do not round to reach the bell. Raise it on a block or step if needed.|Do not lean back at the top. Stand tall and finish with your hips.|Keep the bell close to your body."],
+'kb-swing':['glutes,hamstrings','lower-back,delts-front,abs,forearms',"Stand with feet a little wider than your hips and the kettlebell a foot in front of you.|Hinge back and hike the bell between your legs, forearms touching your thighs.|Snap your hips forward hard and let the bell float to chest height. Your arms just guide it.|Let the bell fall back, hinge again and hike it behind you for the next rep.","It is a hip hinge, not a squat and not an arm lift.|Finish tall with your glutes tight. Do not lean back.|Learn the kettlebell deadlift first.|End the set when your form breaks down. Tired swings are how backs get tweaked."],
+'hip-thrust':['glutes','hamstrings,quads,abs',"Sit on the floor with your upper back against a bench, knees bent and feet flat, about shoulder width apart.|Set the weight over your hips, or use the machine's pad or belt.|Press through your heels and drive your hips up until your body forms a straight line from shoulders to knees.|Squeeze your glutes at the top for a second, then lower with control.","Tuck your chin slightly and look forward, not up at the ceiling.|Do not over-arch your lower back at the top. Keep your ribs down.|Your shins should be about vertical at the top. Adjust your foot distance if your hamstrings take over."],
+'glute-bridge':['glutes','hamstrings,abs',"Lie on your back with knees bent and feet flat, hip width apart, arms at your sides.|Press through your heels and lift your hips until your shoulders, hips and knees form a line.|Squeeze your glutes at the top for 1 to 2 seconds.|Lower slowly and repeat.","Do not push into an arch in your lower back. Stop when your hips are level with your ribs.|Keep your knees pointing forward, not falling in.|If your hamstrings cramp, move your feet a little closer to your hips."],
+'chest-press-machine':['chest','delts-front,triceps',"Set the seat so the handles are level with the middle of your chest.|Sit back with your shoulder blades pulled back and down against the pad.|Press the handles forward until your arms are almost straight.|Return slowly until your hands are back at chest level, then repeat.","Do not lock your elbows hard at the top.|Keep your shoulders down, away from your ears, and your back on the pad.|Keep your wrists straight.|If your elbows are sore, go lighter, use a neutral grip if the machine has one, or switch to the pec deck."],
+'db-bench':['chest','delts-front,triceps',"Sit on a flat bench with dumbbells on your thighs, then lie back and bring them to chest level.|Plant your feet flat and pull your shoulder blades together.|Press the dumbbells up until your arms are almost straight over your chest.|Lower slowly to the sides of your chest, with elbows about 45 degrees from your torso.","Do not flare your elbows straight out to the sides.|Start light, and ask for a spotter or hand-off when the weights get heavy.|Keep your wrists stacked over your elbows.|End the set if you cannot control the weight on the way down."],
+'incline-pushup':['chest','delts-front,triceps,abs',"Place your hands on a bench or counter, a little wider than your shoulders.|Step back until your body forms a straight line from head to heels.|Lower your chest toward the edge, with your elbows about 45 degrees from your body.|Press back up until your arms are straight.","Keep your hips in line with your body, not sagging or piking.|Do not let your elbows flare out wide.|Use a lower surface for more challenge and a higher one for less."],
+'db-shoulder-press':['delts-front,delts-side','triceps,traps',"Sit on a bench with back support, dumbbells at shoulder height, palms facing forward or toward each other.|Brace your core and keep your ribs down.|Press the weights overhead until your arms are almost straight.|Lower slowly to shoulder level.","Do not arch your lower back to get the weight up. Use a lighter pair.|Do not shrug your shoulders up to your ears.|Stay in a pain-free range. If your shoulder pinches, stop and use the lateral raise instead."],
+'shoulder-press-machine':['delts-front,delts-side','triceps,traps',"Adjust the seat so the handles start at shoulder height.|Sit tall with your back on the pad and your core tight.|Press the handles up until your arms are almost straight.|Lower slowly back to shoulder height.","Do not lock your elbows out.|Keep your lower back against the pad.|Pick a weight where the last rep still looks like the first."],
+'lateral-raise':['delts-side','traps',"Stand holding light dumbbells at your sides with a slight bend in your elbows.|Brace your core and keep your chest tall.|Raise your arms out to the sides until they reach shoulder height.|Lower slowly over 2 to 3 seconds.","Go lighter than you think. This is a small muscle.|Do not swing from your legs or shrug.|Do not lift above shoulder height. Lead with your elbows, not your hands."],
+'pec-deck':['chest','delts-front',"Set the seat so the handles are at chest height, with your back against the pad.|Place your forearms or hands on the pads with your elbows slightly bent.|Squeeze your arms together in front of your chest.|Return slowly until you feel a light stretch across your chest, and no further.","Do not let the weight pull your arms back past your shoulders.|Keep your shoulders down and back.|Stay in a comfortable range if your shoulders are cranky."],
+'triceps-pushdown':['triceps','forearms',"Stand facing a cable machine with a rope or bar at chest height, elbows tucked at your sides.|Keep your chest up and your core braced.|Press down until your arms are straight.|Let your hands rise slowly until your forearms are just past parallel. Your elbows stay pinned.","Keep your elbows still. If they drift forward, the weight is too heavy.|Do not lean over the bar to push it down.|If your elbows hurt, skip this exercise for now."],
+'lat-pulldown':['lats','biceps,mid-back,delts-rear,forearms',"Adjust the thigh pad so your legs are locked in, and grab the bar a little wider than your shoulders.|Sit tall and lean back slightly with your chest up.|Pull the bar down to the top of your chest by driving your elbows toward your hips.|Let the bar rise slowly until your arms are straight and you feel a stretch in your lats.","Do not pull the bar behind your neck.|Do not swing back to heave the weight down. Use less weight.|Think about pulling with your elbows, not your hands.|If your elbows are sore, try a neutral-grip handle."],
+'seated-cable-row':['mid-back,lats','biceps,delts-rear,traps,forearms',"Sit with your feet on the platform, knees slightly bent, and grab the handle.|Sit tall with your chest up and a flat back.|Pull the handle to your lower ribs, squeezing your shoulder blades together.|Return slowly until your arms are straight, letting your shoulders drift forward a little.","Do not rock back and forth to move the weight.|Keep your shoulders down, not shrugged.|Keep your back flat. Do not round over as you return."],
+'db-row':['lats,mid-back','biceps,delts-rear,forearms,lower-back',"Place one hand and the same-side knee on a bench, other foot on the floor, back flat.|Hold a dumbbell in your free hand with your arm hanging straight.|Pull the dumbbell toward your hip, with your elbow close to your body.|Lower slowly until your arm is straight. Finish your reps, then switch sides.","Keep your back flat and your hips level. Do not twist.|Pull with your back, not by jerking your arm or body.|Start with a weight you can pull for 10 smooth reps."],
+'assisted-pullup':['lats','biceps,mid-back,forearms',"Set the assistance weight. More assistance makes it easier.|Grab the bar a little wider than your shoulders and kneel or stand on the platform.|Pull your chest toward the bar by driving your elbows down.|Lower slowly until your arms are straight.","Do not kick or swing. Lower the assistance gradually as you get stronger.|Start each rep with your shoulders pulled down, away from your ears.|If your elbows or shoulders are sore, use the lat pulldown instead."],
+'face-pull':['delts-rear,mid-back','traps,biceps',"Set a rope on a cable at about chest or face height.|Hold the ends with your palms facing in and step back until the cable is tight.|Pull the rope toward your face, spreading the ends apart with your elbows high.|Return slowly with control.","Use a light weight. The goal is shoulder health and posture, not heavy load.|Do not lean back to pull.|Keep your elbows at or above the level of your wrists."],
+'reverse-fly':['delts-rear,mid-back','traps',"Adjust the seat so the handles are at shoulder height, facing the pad with your chest against it.|Hold the handles with a slight bend in your elbows.|Open your arms out to the sides, squeezing your shoulder blades together.|Return slowly.","Keep the weight light and the movement smooth.|Do not shrug.|Do not let the weight stack bounce."],
+'biceps-curl':['biceps','forearms',"Stand tall holding dumbbells at your sides, palms forward, elbows next to your ribs.|Curl the weights up toward your shoulders.|Squeeze at the top without swinging.|Lower slowly over 2 to 3 seconds until your arms are straight.","Keep your elbows pinned at your sides.|Do not swing your body to lift the weight.|If your elbows are sore, rest this exercise."],
+'plank':['abs','obliques,glutes,delts-front,lower-back',"Place your forearms on the floor with your elbows under your shoulders and your legs straight behind you on your toes.|Squeeze your glutes and brace your abs as if bracing for a light punch.|Hold your body in a straight line from head to heels.|Breathe steadily and hold for the target time.","Do not let your hips sag or pike up.|End the set when your form breaks down.|Drop to your knees if needed. Lower back pain means stop.|Use a high plank on your hands if your elbows are sore."],
+'dead-bug':['abs','obliques,hip-flexors',"Lie on your back with your arms straight up and your knees bent over your hips at 90 degrees.|Press your lower back gently into the floor.|Lower your opposite arm and leg slowly toward the floor.|Return to the start and switch sides.","Keep your lower back pressed down the whole time. If it arches, shorten the range.|Move slowly. This is about control.|Breathe out as you extend."],
+'bird-dog':['lower-back,glutes','abs,delts-front',"Start on hands and knees with your hands under your shoulders and your knees under your hips. Pad your knees if needed.|Brace your core and keep your back flat.|Reach one arm forward and the opposite leg back until both are in line with your body.|Pause, return, and switch sides.","Do not let your hips rotate or your back sag.|Move slowly. Do not reach higher than your body line.|Use a thicker mat or skip it if kneeling hurts your knees."],
+'farmers-carry':['forearms,traps','abs,obliques,glutes,delts-side',"Stand between two heavy dumbbells or kettlebells. Hinge down and grab them with a firm grip.|Stand tall with your shoulders back and down and your core braced.|Walk with short, steady steps for the target time or distance.|Set the weights down carefully with a hinge. Do not drop them.","Do not lean or shrug. Stay tall.|Pick a weight you can carry with good posture.|Look ahead and keep an even pace.|Clear your path first."],
+'pallof-press':['obliques,abs','delts-front',"Set a cable at chest height. Stand sideways to it, feet hip width apart, holding the handle at your chest with both hands.|Step away until the cable is tight and brace your core.|Press the handle straight out in front of you.|Hold for a second, then bring it back in. Finish your reps, then switch sides.","Do not let the cable pull you around. Resisting the twist is the point.|Keep your hips and shoulders square.|Breathe out as you press."],
+'hip-flexor-stretch':['hip-flexors','quads',"Kneel on a mat on one knee with the other foot flat in front and the shin vertical. Pad the back knee.|Tuck your tailbone under and squeeze the glute of the back leg.|Shift your hips forward gently until you feel a stretch at the front of your back hip.|Hold and breathe slowly, then switch sides.","Do not arch your lower back. Tuck your tailbone instead.|The stretch should feel firm, not sharp.|Do it standing with your back foot on a step if kneeling hurts."],
+'thoracic-rotation':['mid-back,obliques','',"Start on hands and knees with your hands under your shoulders and your knees under your hips.|Place one hand lightly behind your head.|Rotate that elbow down toward the opposite arm, then open up toward the ceiling.|Follow your elbow with your eyes. Repeat, then switch sides.","Rotate from your upper back, not your lower back.|Move slowly through a comfortable range.|Keep your hips steady."],
+'hamstring-stretch':['hamstrings','calves',"Lie on your back with both legs straight. Lift one leg and hold behind the thigh, or loop a strap or towel around the foot.|Keep the other leg flat on the floor.|Straighten the lifted leg until you feel a stretch in the back of your thigh.|Hold, breathe, then switch.","Stretch gently. You should feel tension, not sharp pain.|Do not bounce.|Keep your hips on the floor, with a soft bend in the knee if needed."],
+'calf-stretch':['calves','',"Stand facing a wall with your hands on it at chest height.|Step one foot back and keep its heel on the floor and the leg straight.|Bend your front knee and lean your hips toward the wall until you feel a stretch in the back calf.|Hold, then switch. Bend the back knee slightly to reach the lower calf.","Keep the back heel down and your toes pointing forward.|Do not bounce.|Stop if you feel pain in the heel or Achilles tendon."],
+'cat-cow':['lower-back,abs','mid-back',"Start on hands and knees with your wrists under your shoulders and your knees under your hips.|Breathe in, drop your belly and lift your chest and tailbone (cow).|Breathe out, round your spine toward the ceiling and tuck your chin and tailbone (cat).|Move slowly between the two, one breath per position.","Move within a comfortable range.|Pad your knees if kneeling hurts.|Do not force the end positions."],
+'pigeon-stretch':['glutes','hip-flexors',"Start on hands and knees. Slide one knee forward behind the same-side wrist, with the shin angled across your body.|Extend the other leg straight back.|Square your hips and gently lower your chest forward over the front leg.|Hold and breathe, then switch sides.","Put a folded towel or block under the front hip if it does not reach the floor.|Do not force the front knee. If it hurts, skip it and use the 90/90 or the hip flexor stretch.|The stretch should be in the hip and glute, not the knee."],
+'ninety-ninety':['glutes,hip-flexors','adductors',"Sit on the floor with both knees bent at 90 degrees, one leg in front and the other out to the side.|Sit tall with your hands on the floor or crossed on your chest.|Rotate both knees over to the other side, switching the position of your legs.|Move slowly with control and repeat.","Sit on a cushion if your hips are tight.|Keep your spine tall.|Move gently. Do not force a knee down."],
+'walk':['quads,calves,glutes','hamstrings',"Stand tall with your gaze ahead and your shoulders relaxed.|Take natural steps, landing on your heel and rolling through to your toes.|Swing your arms gently.|Pick a pace where you can talk but still feel a little warm, and build your time gradually.","Wear supportive shoes.|Slow down or shorten the walk if a joint flares up.|Choose flat, even ground when something feels sore."],
+'incline-walk':['glutes,calves','quads,hamstrings',"Set the treadmill to a gentle incline, 3 to 8 percent, and a comfortable speed.|Walk tall without leaning on the handles.|Swing your arms naturally.|Build up your time before adding more incline.","Do not hold the handrails. It reduces the work and changes your posture.|Lower the incline if it strains your calves or knees.|Cool down by lowering the incline for the last few minutes."],
+'bike':['quads','hamstrings,glutes,calves',"Adjust the seat so your knee has a slight bend at the bottom of the pedal stroke.|Sit tall with relaxed shoulders and a light grip.|Pedal at a steady pace with light resistance, then add resistance gradually.|Finish with a few easy minutes.","A seat set too low strains the knees.|Do not bounce on the saddle. Lower the resistance.|Stop if your knee hurts."],
+'elliptical':['quads,glutes','hamstrings,calves',"Step on and hold the handles lightly.|Stand tall with your weight over your feet.|Push and pull in smooth, circular strides.|Choose a resistance you can sustain with good posture, and try reversing direction for variety.","Do not lean heavily on the handles.|Keep your knees tracking forward.|Keep your steps smooth. Slow down if you lose control."],
+'jump-rope':['calves','quads,forearms',"Hold the handles at hip height with your elbows close to your sides.|Use your wrists to turn the rope and jump just high enough to clear it.|Land softly on the balls of your feet with slightly bent knees.|Start with 20 to 30 seconds on, then rest 30 to 60 seconds.","Keep jumps low. Do not jump high.|Use a surface with some give, not concrete.|Skip it while your knee is sore and use a walk or the bike instead.|Weighted handles feel heavier than they look. Start short."]
+};
+const nz=s=>s?s.split(',').filter(Boolean):[];
+function guideFor(id){const ex=exById(id)||{},g=GUIDE[id];
+  if(g)return{p:nz(g[0]),s:nz(g[1]),how:g[2].split('|'),watch:g[3].split('|'),has:true};
+  const gm=GROUP_MUSCLES[ex.group]||['',''];return{p:nz(gm[0]),s:nz(gm[1]),how:[],watch:[],has:false}}
+
+/* body map: left half of each view is drawn, then mirrored */
+const BASE_HALF='<path d="M100,54 L82,57 Q66,61 62,72 L64,96 Q68,122 76,142 Q78,160 72,176 L72,188 L100,192 Z"/><path d="M64,66 Q52,64 48,76 L43,126 Q44,134 52,134 L58,132 Q66,100 68,80 Z"/><path d="M45,132 Q42,160 38,190 Q40,196 46,196 L50,194 Q58,160 60,134 Z"/><ellipse cx="42" cy="202" rx="6" ry="9"/><path d="M72,188 Q68,230 77,262 L96,262 Q101,226 100,190 Z"/><path d="M77,262 Q73,296 79,330 L91,330 Q95,296 96,262 Z"/><path d="M79,328 Q76,346 76,351 L92,351 L92,328 Z"/>';
+const SIDE=[['delts-side','M60,66 Q50,68 50,82 Q51,92 58,96 Q58,80 62,70 Z']];
+const ARMS=[['biceps','M54,98 Q48,110 48,126 L58,128 Q62,112 62,98 Z'],['forearms','M46,134 Q42,160 40,188 L48,192 Q56,162 59,134 Z']];
+const FRONT=[['traps','M100,56 L84,58 Q74,62 68,68 L78,72 Q92,66 100,66 Z'],['chest','M100,68 Q88,64 74,72 Q68,86 74,100 Q88,106 100,100 Z'],
+ ['delts-front','M62,67 Q60,80 59,95 Q66,96 70,88 Q72,76 68,68 Z'],...SIDE,...ARMS,
+ ['abs','M100,104 L92,104 L91,126 L92,150 Q96,160 100,162 Z'],['obliques','M90,104 L80,108 Q76,128 78,150 Q80,160 84,164 L91,156 Z'],
+ ['hip-flexors','M91,160 L82,168 Q80,178 84,186 L98,190 L96,172 Z'],
+ ['quads','M92,190 Q76,194 72,206 Q69,232 76,258 L91,256 Q93,226 93,196 Z'],['adductors','M94,196 Q96,226 92,254 L100,252 L100,196 Z'],
+ ['calves','M78,270 Q74,296 80,324 L90,324 Q93,296 92,270 Z']];
+const BACK=[['traps','M100,48 L90,54 Q76,60 66,70 L80,88 Q92,92 100,92 Z'],
+ ['delts-rear','M62,67 Q60,80 59,95 Q66,96 70,88 Q72,76 68,68 Z'],...SIDE,
+ ['lats','M80,94 Q70,100 68,116 Q72,140 82,150 Q92,146 100,140 L100,118 Q90,118 84,112 Z'],
+ ['mid-back','M100,92 L82,90 L84,112 Q94,116 100,114 Z'],
+ ['triceps',ARMS[0][1]],['forearms',ARMS[1][1]],
+ ['lower-back','M100,142 L88,150 L86,170 L100,174 Z'],
+ ['glutes','M100,176 Q82,170 72,182 Q68,200 80,210 Q94,210 100,202 Z'],
+ ['hamstrings','M96,214 Q80,214 74,224 Q70,246 77,262 L94,260 Q98,236 98,216 Z'],
+ ['calves','M78,268 Q72,294 79,326 L92,326 Q96,296 92,268 Z']];
+function bodyView(defs,P,Sx,label){
+  const half=defs.map(([id,d])=>`<path class="m ${P.includes(id)?'p':Sx.includes(id)?'s':''}" d="${d}"/>`).join('');
+  return `<figure><svg class="body" viewBox="0 0 200 360" aria-hidden="true"><g class="bbase"><ellipse cx="100" cy="24" rx="14" ry="18"/><rect x="92" y="38" width="16" height="20"/><g>${BASE_HALF}</g><g transform="translate(200 0) scale(-1 1)">${BASE_HALF}</g></g><g>${half}</g><g transform="translate(200 0) scale(-1 1)">${half}</g></svg><figcaption>${label}</figcaption></figure>`}
+function bodyHTML(P,Sx){const nm=a=>a.map(m=>MUSCLE[m]||m).join(', ');
+  return `<div class="bodies" role="img" aria-label="Muscle map. Main: ${esc(nm(P)||'none')}. Also: ${esc(nm(Sx)||'none')}.">${bodyView(FRONT,P,Sx,'Front')}${bodyView(BACK,P,Sx,'Back')}</div>
+  <div class="keys"><span><i class="p"></i>Main</span><span><i class="s"></i>Helps</span></div>
+  <p class="mus">${P.length?`<b>Main:</b> ${esc(nm(P))}.`:''} ${Sx.length?`<b>Helps:</b> ${esc(nm(Sx))}.`:''}</p>`}
+function infoHTML(id,from){const ex=exById(id);if(!ex)return'<p class="empty">Exercise not found.</p>';const g=guideFor(id);
+  return `<div class="row between"><button class="link" data-act="${from?'infoback':'closesheet'}">${from?'‹ Back':'Close'}</button>${from&&from.k==='guide'&&cur()?`<button class="btn sm" data-act="addto:${esc(id)}">Add to today</button>`:''}</div>
+  <div><h2 style="margin:0 0 2px;color:var(--ink)">${esc(ex.name)}</h2><p class="note">${esc(ex.group)} · ${esc(ex.equip||'')} · logs ${esc(TL[ex.type].toLowerCase())}</p></div>
+  ${g.p.length||g.s.length?bodyHTML(g.p,g.s):''}
+  ${g.has?`<div class="stack"><h2>How to do it</h2><ol class="steps">${g.how.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>
+  <div class="stack"><h2>Watch for</h2><ul class="watch">${g.watch.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>`:'<p class="note">This is your own exercise, so there is no built-in guide. The muscles shown are a general guess for its group.</p>'}
+  <p class="note">General guidance, not medical advice. Start light, and stop any exercise that causes sharp pain.</p>`}
+
 const PLAN={
  A:{name:'Machines + hinge',items:[['leg-press',3,'8–12'],['chest-press-machine',3,'8–12'],['lat-pulldown',3,'8–12'],['db-rdl',3,'8–10'],['plank',2,'30–45 sec'],['hip-flexor-stretch',2,'30 sec each side']]},
  B:{name:'Intro to free weights',items:[['goblet-squat',3,'8–10'],['seated-cable-row',3,'8–12'],['db-shoulder-press',3,'8–10'],['kb-deadlift',3,'8–10'],['dead-bug',2,'8 each side'],['thoracic-rotation',2,'8 each side']]},
@@ -255,7 +371,7 @@ const PLAN={
 
 /* ---------- state ---------- */
 const LSK='training-log-v1';
-const S={tab:'today',date:today(),loaded:false,db:null,root:null,sample:null,dl:null,
+const S={entered:false,tab:'today',date:today(),loaded:false,db:null,root:null,sample:null,dl:null,
   profile:null,custom:[],rest:{knee:false,elbow:false},sessions:{},weights:{},days:{},
   sheet:null,range:'6M',strengthEx:null,draft:null,diaryDate:today(),chat:[],busy:false,ctl:null,confirmDel:false,dirty:false};
 const exAll=()=>[...LIB,...S.custom.map(c=>({joints:[],alts:[],equip:'Custom',...c}))];
@@ -361,11 +477,23 @@ const ICON={
 const TABS=[['today','Log'],['progress','Progress'],['diary','Diary'],['coach','Coach'],['me','Me']];
 const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
+const LINES=[n=>`Let\u2019s get it${n}.`,n=>`Hi${n}. Ready to move?`,n=>`Strong is built one set at a time${n}.`,n=>`Show up today${n}. That\u2019s the whole job.`,n=>`Small steps still count${n}.`,n=>`Progress, not perfection${n}.`,n=>`Every rep is a vote for who you\u2019re becoming${n}.`];
+let HERO=null;
+const LOGO='<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="var(--accent)"/><g fill="none" stroke="var(--accent-ink)" stroke-width="30" stroke-linecap="round"><path d="M176 170v172M336 170v172M118 204v104M394 204v104M176 256h160"/></g></svg>';
+function viewLanding(){const p=S.profile,n=p&&p.name?`, ${p.name}`:'',h=new Date().getHours();if(HERO==null)HERO=Math.floor(Math.random()*LINES.length);
+  if(!p)return `<section class="landing"><div class="logo">${LOGO}</div><p class="eyebrow">Welcome</p><h1 class="hero">Let\u2019s build your log.</h1><p class="upnext">Set up takes a minute. Everything stays on this device.</p><button class="btn big" data-act="enter">Get started</button></section>`;
+  const t=today(),ws=monday(t),act=[...Array(7)].filter((_,i)=>isActive(S.sessions[addDays(ws,i)])).length,tot=sessDates().filter(d=>isActive(S.sessions[d])).length,rec=nextPlan();
+  const eyebrow=(h<5?'Late night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+n;
+  return `<section class="landing"><div class="logo">${LOGO}</div><p class="eyebrow">${esc(eyebrow)}</p><h1 class="hero">${esc(LINES[HERO](n))}</h1>
+   <div class="landstats"><div><b>${act}/${p.target||3}</b><span>active days this week</span></div><div><b>${tot}</b><span>workouts logged</span></div></div>
+   <p class="upnext">${isActive(S.sessions[t])?'Logged today. Nice work.':`Up next: <b>Day ${rec} \u00b7 ${esc(PLAN[rec].name)}</b>`}</p>
+   <button class="btn big" data-act="enter">Let\u2019s go</button></section>`}
 function viewSetup(){const p=S.profile||{};return `<div class="stack"><h1>Set up your log</h1>
  <p class="sub">A few numbers to personalize your targets and charts. They are saved only in this browser.</p>
  <div class="card stack">${profileFields({target:3})}
  <button class="btn wide" data-act="savesetup">Start logging</button></div></div>`}
 function profileFields(p){const has=p.heightIn!=null,ft=has?Math.floor(p.heightIn/12):'',inch=has?p.heightIn%12:'';return `
+ <label class="lbl">Preferred name<input id="pf-name" type="text" maxlength="30" autocomplete="given-name" placeholder="What should we call you?" value="${esc(p.name||'')}"></label>
  <div class="grid3"><label class="lbl">Age<input id="pf-age" type="text" inputmode="numeric" placeholder="35" value="${esc(p.age??'')}"></label>
  <label class="lbl">Height ft<input id="pf-ft" type="text" inputmode="numeric" placeholder="5" value="${ft}"></label>
  <label class="lbl">Height in<input id="pf-in" type="text" inputmode="numeric" placeholder="6" value="${inch}"></label></div>
@@ -374,7 +502,7 @@ function profileFields(p){const has=p.heightIn!=null,ft=has?Math.floor(p.heightI
  <label class="lbl">Days / week<input id="pf-target" type="text" inputmode="numeric" value="${esc(p.target??3)}"></label></div>
  <label class="lbl">Notes (limits, preferences)<textarea id="pf-notes" placeholder="e.g. sore knees some weeks, prefers machines">${esc(p.notes||'')}</textarea></label>`}
 function readProfile(){const g=id=>$('#'+id).value,ft=num(g('pf-ft')),inch=num(g('pf-in'));
-  return{age:num(g('pf-age')),heightIn:ft==null&&inch==null?null:Math.round((ft||0)*12+(inch||0)),startLb:num(g('pf-start')),goalLb:num(g('pf-goal')),
+  return{name:g('pf-name').trim(),age:num(g('pf-age')),heightIn:ft==null&&inch==null?null:Math.round((ft||0)*12+(inch||0)),startLb:num(g('pf-start')),goalLb:num(g('pf-goal')),
     target:Math.max(1,Math.min(7,Math.round(num(g('pf-target'))||3))),notes:g('pf-notes').trim(),startDate:S.profile?.startDate||today()}}
 
 function viewToday(){
@@ -411,7 +539,7 @@ function entryHTML(e,ei){
     const up=(e.target||'').match(/(\d+)\D+(\d+)/);if(e.type==='wr'&&up&&ls.length&&ls.every(s=>(s.r||0)>=+up[2]))hint+=`<br>You hit ${up[2]} reps on every set. Try a small bump, +2.5 to 5 lb.`}
   else hint=`First time logging this. Start light and focus on form.`;
   const best=bestBefore(e.ex,S.date),t=topOf(e),pr=best!=null&&t!=null&&t>best&&(e.type==='wr'||e.type==='br'||e.type==='wt');
-  return `<section class="card ex stack"><div class="row between"><div class="grow"><h3>${esc(e.name)} ${pr?'<span class="pr">New best</span>':''}</h3>
+  return `<section class="card ex stack"><div class="row between"><div class="grow"><h3><button class="exname" data-act="info:${esc(e.ex)}">${esc(e.name)}</button> ${pr?'<span class="pr">New best</span>':''}</h3>
    <div class="meta">${esc(ex.equip||'')}${e.target?` · target ${esc(e.target)}`:''}</div></div></div>
    ${e.from?`<div class="note">Swapped from ${esc(e.from)} (joint resting)</div>`:''}
    ${bad.length?`<div class="flag">${bad.map(b=>b[0].toUpperCase()+b.slice(1)).join(' and ')} resting. Consider a swap.</div>`:''}
@@ -419,7 +547,7 @@ function entryHTML(e,ei){
    ${e.sets.map((s,si)=>`<div class="set ${s.ok?'ok':''}"><span class="n">${si+1}</span>${F.map(([k,u])=>{const pv=ls[si]?.[k]??ls[ls.length-1]?.[k];
      return `<label class="fld"><input type="text" inputmode="decimal" data-b="set" data-ei="${ei}" data-si="${si}" data-k="${k}" value="${esc(s[k]??'')}" placeholder="${esc(pv??'')}" aria-label="Set ${si+1} ${u}"><i>${u}</i></label>`}).join('')}
      <button class="tick" data-act="tick:${ei}:${si}" aria-pressed="${!!s.ok}" aria-label="Set ${si+1} done">${CHECK}</button><button class="x" data-act="delset:${ei}:${si}" aria-label="Remove set ${si+1}">×</button></div>`).join('')}
-   <div class="exfoot"><button class="link" data-act="addset:${ei}">Add set</button><button class="link" data-act="swap:${ei}">Swap</button><button class="link bad" data-act="rm:${ei}">Remove</button></div></section>`}
+   <div class="exfoot"><button class="link" data-act="addset:${ei}">Add set</button><button class="link" data-act="info:${esc(e.ex)}">How to</button><button class="link" data-act="swap:${ei}">Swap</button><button class="link bad" data-act="rm:${ei}">Remove</button></div></section>`}
 
 function viewProgress(){
   const W=wArr(),p=S.profile,latest=W.length?W[W.length-1].lb:null,startLb=p.startLb??(W[0]?.lb),
@@ -566,6 +694,7 @@ function insights(){const out=[],p=S.profile,W=wArr(),t=today(),target=p.target|
 function viewCoach(){const q=S.cq||'',res=S.cres||[];
   return `<h1>Coach</h1><p class="sub">Tips built from your own numbers, plus answers to common questions. General guidance, not medical advice.</p>
   ${insights().map(([h,b])=>`<div class="card"><h2>${esc(h)}</h2>${b.split('\n').map(l=>`<p>${esc(l)}</p>`).join('')}</div>`).join('')}
+  <div class="card stack"><h2>Exercise guide</h2><p class="note">Form steps, safety tips and a muscle map for every exercise in your library.</p><button class="btn out" data-act="guide">Browse exercises</button></div>
   <div class="card stack"><h2>Ask a question</h2><div class="row"><input id="cq" type="text" enterkeyhint="search" placeholder="e.g. my knee hurts on leg press" value="${esc(q)}" aria-label="Question"><button class="btn" data-act="cask">Ask</button></div>
   ${q&&!res.length?`<p class="note">No canned answer for that. Try other words, or pick a topic below. For pain that's sharp, lasting or comes with swelling, see a clinician.</p>`:''}
   ${res.map(i=>`<div class="card stack" style="background:var(--surface-2)"><h2 style="margin:0">${esc(FAQ[i][0])}</h2><div>${md(FAQ[i][2])}</div></div>`).join('')}
@@ -590,15 +719,17 @@ function renderSheet(){const el=$('#sheet'),sh=S.sheet;if(!sh){el.innerHTML='';r
    <label class="lbl">Muscle group<select id="cg">${GROUPS.map(g=>`<option>${g}</option>`).join('')}</select></label>
    <label class="lbl">What do you track?<select id="ct">${Object.entries(TL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label>
    <div class="row"><button class="btn grow" data-act="savecustom">Save</button><button class="btn out" data-act="closesheet">Cancel</button></div>`}
-  else{body=`<div class="row between"><h2 style="margin:0">${sh.k==='swap'?'Swap exercise':'Add exercise'}</h2><button class="link" data-act="closesheet">Close</button></div>
+  else if(sh.k==='info'){body=infoHTML(sh.id,sh.from)}
+  else{body=`<div class="row between"><h2 style="margin:0">${sh.k==='swap'?'Swap exercise':sh.k==='guide'?'Exercise guide':'Add exercise'}</h2><button class="link" data-act="closesheet">Close</button></div>
    <input id="sq" type="text" placeholder="Search exercises" value="${esc(sh.q||'')}" aria-label="Search exercises">
    <div class="chips">${['All',...GROUPS].map(g=>`<button class="chip" data-act="grp:${g}" aria-pressed="${(sh.g||'All')===g}">${g}</button>`).join('')}</div>
    <div class="stack" id="pl">${pickList()}</div><button class="btn out" data-act="newcustom">Create an exercise</button>`}
-  el.innerHTML=`<div class="scrim" data-act="closesheet"><div class="panel" role="dialog" aria-modal="true" onclick="event.stopPropagation()">${body}</div></div>`}
+  el.innerHTML=`<div class="scrim" data-act="closesheet"><div class="panel" role="dialog" aria-modal="true">${body}</div></div>`}
 function pickList(){const sh=S.sheet,q=(sh.q||'').toLowerCase();let L=exAll();
   if(sh.g&&sh.g!=='All')L=L.filter(e=>e.group===sh.g);if(q)L=L.filter(e=>e.name.toLowerCase().includes(q));
   if(sh.k==='swap'){const cu=cur().entries[sh.ei],base=exById(cu.ex),al=base?base.alts:[];L=L.filter(e=>e.id!==cu.ex).sort((a,b)=>(al.includes(b.id)?1:0)-(al.includes(a.id)?1:0)||(conflict(a)?1:0)-(conflict(b)?1:0))}
-  return L.slice(0,80).map(e=>{const bad=(e.joints||[]).filter(j=>S.rest[j]);return `<button class="pick" data-act="pick:${esc(e.id)}"><strong>${esc(e.name)}</strong><small>${esc(e.group)} · ${esc(e.equip||'')} ${bad.length?`<em> · ${bad.join(' + ')} resting</em>`:''}</small></button>`}).join('')||'<p class="empty">No match. Create it below.</p>'}
+  return L.slice(0,80).map(e=>{const bad=(e.joints||[]).filter(j=>S.rest[j]);const main=`<button class="pick" data-act="${sh.k==='guide'?'info':'pick'}:${esc(e.id)}"><strong>${esc(e.name)}</strong><small>${esc(e.group)} · ${esc(e.equip||'')} ${bad.length?`<em> · ${bad.join(' + ')} resting</em>`:''}</small></button>`;
+    return sh.k==='guide'?main:`<div class="prow">${main}<button class="info" data-act="info:${esc(e.id)}" aria-label="How to do ${esc(e.name)}">How to</button></div>`}).join('')||'<p class="empty">No match. Create it below.</p>'}
 
 /* ---------- render ---------- */
 function typing(){const a=document.activeElement;return!!a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&$('#view').contains(a)}
@@ -606,6 +737,8 @@ function render(force){
   if(!force&&typing()){S.dirty=true;return}S.dirty=false;
   const v=$('#view'),tabs=$('#tabs');
   if(!S.loaded){v.innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';tabs.hidden=true;return}
+  $('.top').hidden=!S.entered;
+  if(!S.entered){tabs.hidden=true;v.innerHTML=viewLanding();return}
   if(!S.profile){tabs.hidden=true;v.innerHTML=viewSetup();return}
   tabs.hidden=false;
   tabs.firstElementChild.innerHTML=TABS.map(([k,l])=>`<button data-act="tab:${k}" ${S.tab===k?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${l}</button>`).join('');
@@ -648,6 +781,11 @@ document.addEventListener('click',async ev=>{
   case'openadd':S.sheet={k:'add',q:'',g:'All'};renderSheet();break;
   case'swap':S.sheet={k:'swap',ei:+arg,q:'',g:'All'};renderSheet();break;
   case'closesheet':S.sheet=null;renderSheet();break;
+  case'enter':S.entered=true;window.scrollTo(0,0);render(true);break;
+  case'info':{const f=S.sheet&&(S.sheet.k==='add'||S.sheet.k==='swap'||S.sheet.k==='guide')?S.sheet:null;S.sheet={k:'info',id:arg,from:f};renderSheet();break}
+  case'infoback':S.sheet=S.sheet.from;renderSheet();break;
+  case'guide':S.sheet={k:'guide',q:'',g:'All'};renderSheet();break;
+  case'addto':{const ex=exById(arg);if(ex&&cur()){cur().entries.push(mkEntry(ex.id,3,''));saveSession(S.date);S.sheet=null;renderSheet();S.tab='today';render(true);window.scrollTo(0,document.body.scrollHeight)}break}
   case'grp':S.sheet.g=arg;renderSheet();break;
   case'pick':{const ex=exById(arg);if(!ex)break;const sh=S.sheet;
     if(sh.k==='swap'){const old=cur().entries[sh.ei],n=mkEntry(ex.id,old.sets.length,old.target);n.from=old.from||old.name;

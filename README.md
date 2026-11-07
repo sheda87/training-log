@@ -2,6 +2,8 @@
 
 A private workout tracker that runs in the phone browser and installs to the home screen. No account, no server, no build step: plain HTML, CSS and JavaScript.
 
+- **Landing screen** with a greeting that uses your preferred name, your week so far and what's up next.
+- **Exercise guides**: tap any exercise name (or How to) for step-by-step form, safety tips and a front/back muscle map showing main and helping muscles. Browse them all in the Coach tab.
 - **Log** a 3-day full-body plan (A, B, C) or build your own. Sets are prefilled from last time; tick each one when done.
 - **Flexible exercises**: weight and reps, reps only, hold time, weight and time, or cardio. Add your own.
 - **Joint rest markers** (knee, elbow) flag exercises and swap them automatically in new workouts.
