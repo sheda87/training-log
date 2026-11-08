@@ -9,6 +9,7 @@ A private workout tracker that runs in the phone browser and installs to the hom
 - **Joint rest markers** (knee, elbow) flag exercises and swap them automatically in new workouts.
 - **Diary** notes by day, plus a note on every workout.
 - **Progress** charts: body weight against your goal, strength per exercise, active days per week.
+- **Heart rate and effort**: log minutes, average and peak heart rate on any workout, or import them from Apple Health (Me tab). You get a zone gauge and plain-language feedback on whether the effort was too low, typical or too high for the kind of workout, plus progress charts.
 - **Coach**: tips from your own numbers (pace, ready to add weight, stuck lifts) and answers to common questions. Works offline.
 
 ## Publish on GitHub Pages
@@ -25,6 +26,10 @@ All file paths are relative, so it works under any repo name.
 - **Android (Chrome):** open the page, tap the menu, then **Install app**.
 
 Using the installed version also protects your data better, because browsers clear storage for sites you haven't opened in a while.
+
+## Heart rate import
+
+Me tab, Watch and heart rate. On an iPhone: Health app, tap your picture, Export All Health Data, then choose the export.zip here. It is read on your device and never uploaded. A CSV with columns like Date, Type, Duration, Avg Heart Rate, Max Heart Rate also works. Zones use your max heart rate (set it in Me, or it is estimated as 208 minus 0.7 times age).
 
 ## Your data
 

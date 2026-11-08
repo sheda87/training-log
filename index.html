@@ -164,6 +164,10 @@ details.tbl th{color:var(--ink-2);font-size:12px}
 .pick strong{font-weight:600} .pick small{display:block;color:var(--ink-2);font-size:12px} .pick em{font-style:normal;color:var(--warn);font-size:12px;font-weight:600}
 .skel{height:84px;border-radius:14px;background:var(--surface-2);opacity:.7}
 .note{font-size:13px;color:var(--ink-2)}
+.vd{border-radius:12px;padding:10px 12px;background:var(--surface-2);color:var(--ink)}
+.vd b{display:block;font-size:15px}.vd p{margin:5px 0 0;font-size:14px;line-height:1.4;color:inherit}
+.vd.good{background:var(--good-soft);color:var(--good)}.vd.warn{background:var(--warn-soft);color:var(--warn)}
+svg.gauge{width:100%;height:auto;display:block}.gauge text{fill:var(--ink-2);font:600 10.5px var(--text)}.gauge .gv{fill:var(--ink);font-size:11.5px}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:9px 12px;font-size:14px}
 .done{background:var(--good-soft);color:var(--good);border-radius:12px;padding:12px 14px;font-weight:600}
 @media (prefers-reduced-motion:no-preference){ .btn,.chip,.tick{transition:background .12s,border-color .12s} }
@@ -373,12 +377,12 @@ const PLAN={
 const LSK='training-log-v1';
 const S={entered:false,tab:'today',date:today(),loaded:false,db:null,root:null,sample:null,dl:null,
   profile:null,custom:[],rest:{knee:false,elbow:false},sessions:{},weights:{},days:{},
-  sheet:null,range:'6M',strengthEx:null,draft:null,diaryDate:today(),chat:[],busy:false,ctl:null,confirmDel:false,dirty:false};
+  imp:null,impDone:'',sheet:null,range:'6M',strengthEx:null,draft:null,diaryDate:today(),chat:[],busy:false,ctl:null,confirmDel:false,dirty:false};
 const exAll=()=>[...LIB,...S.custom.map(c=>({joints:[],alts:[],equip:'Custom',...c}))];
 const exById=id=>exAll().find(e=>e.id===id);
 const conflict=ex=>(ex.joints||[]).some(j=>S.rest[j]);
 const okSets=e=>(e.sets||[]).filter(s=>s.ok);
-const isActive=s=>!!s&&(s.entries||[]).some(e=>okSets(e).length);
+const isActive=s=>!!s&&((s.entries||[]).some(e=>okSets(e).length)||!!(s.watch&&s.watch.dur>=5));
 const sessDates=()=>Object.keys(S.sessions).sort();
 const wArr=()=>Object.entries(S.weights).map(([d,v])=>({d,lb:v.lb})).sort((a,b)=>a.d<b.d?-1:1);
 const topOf=e=>{const ss=okSets(e);if(!ss.length)return null;const m=k=>Math.max(...ss.map(s=>s[k]||0));
@@ -428,7 +432,7 @@ function niceTicks(lo,hi,n){if(lo===hi){lo-=1;hi+=1}const raw=(hi-lo)/n,mag=10**
 function lineChart(host,pts,o={}){
   if(!pts.length){host.innerHTML='<p class="empty">Nothing logged here yet. This fills in as you add entries.</p>';return}
   const W=360,H=210,m={l:40,r:14,t:16,b:28},iw=W-m.l-m.r,ih=H-m.t-m.b,unit=o.unit||'';
-  const ys=pts.map(p=>p.y);if(o.goal!=null)ys.push(o.goal);
+  const ys=pts.map(p=>p.y);if(o.goal!=null)ys.push(o.goal);(o.refs||[]).forEach(r=>ys.push(r.y));
   const lo=Math.min(...ys),hi=Math.max(...ys),pad=(hi-lo)*.15||Math.max(1,hi*.05);
   const ticks=niceTicks(lo-pad,hi+pad,4),y0=ticks[0],y1=ticks[ticks.length-1];
   const t0=pts[0].t,t1=pts[pts.length-1].t,X=t=>t1===t0?m.l+iw/2:m.l+(t-t0)/(t1-t0)*iw,Y=v=>m.t+ih-(v-y0)/(y1-y0)*ih;
@@ -437,6 +441,7 @@ function lineChart(host,pts,o={}){
   let g=ticks.map(v=>`<line class="c-grid" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text class="c-tick" x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${f1(v)}</text>`).join('');
   g+=xl.map(([t,a])=>`<text class="c-tick" x="${a==='start'?m.l:a==='end'?W-m.r:X(t)}" y="${H-8}" text-anchor="${a}">${lab(t)}</text>`).join('');
   if(o.goal!=null)g+=`<line class="c-goal" x1="${m.l}" x2="${W-m.r}" y1="${Y(o.goal)}" y2="${Y(o.goal)}"/><text class="c-goaltxt" x="${W-m.r}" y="${Y(o.goal)-5}" text-anchor="end">Goal ${f1(o.goal)}</text>`;
+  g+=(o.refs||[]).map(r=>`<line class="c-goal" x1="${m.l}" x2="${W-m.r}" y1="${Y(r.y)}" y2="${Y(r.y)}"/><text class="c-goaltxt" x="${W-m.r}" y="${Y(r.y)-5}" text-anchor="end">${esc(r.label)}</text>`).join('');
   const d=pts.map((p,i)=>`${i?'L':'M'}${X(p.t).toFixed(1)},${Y(p.y).toFixed(1)}`).join('');
   g+=pts.length>1?`<path class="c-line" d="${d}"/>`:'';
   if(pts.length<=80)g+=pts.map(p=>`<circle class="c-dot" cx="${X(p.t)}" cy="${Y(p.y)}" r="${p===pts[pts.length-1]?5:3.5}"/>`).join('');
@@ -460,12 +465,184 @@ function barChart(host,bars,o={}){
   if(o.target)g+=`<line class="c-goal" x1="${m.l}" x2="${W-m.r}" y1="${Y(o.target)}" y2="${Y(o.target)}"/><text class="c-goaltxt" x="${W-m.r}" y="${Y(o.target)-5}" text-anchor="end">Target ${o.target}</text>`;
   host.innerHTML=`<div class="readout"><b></b><span></span></div><svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Bar chart')}">${g}</svg>`;
   const svg=host.querySelector('svg'),rb=host.querySelector('.readout b'),rs=host.querySelector('.readout span');
-  const show=i=>{const b=bars[i];rb.textContent=`${b.v} active day${b.v===1?'':'s'}`;rs.textContent=b.tip;svg.querySelectorAll('.c-bar').forEach(p=>p.classList.toggle('hl',+p.dataset.i===i))};
+  const show=i=>{const b=bars[i];rb.textContent=o.fmt?o.fmt(b.v):`${b.v} active day${b.v===1?'':'s'}`;rs.textContent=b.tip;svg.querySelectorAll('.c-bar').forEach(p=>p.classList.toggle('hl',+p.dataset.i===i))};
   show(bars.length-1);
   const mv=e=>{const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W;show(Math.max(0,Math.min(bars.length-1,Math.floor((x-m.l)/bw))))};
   svg.addEventListener('pointermove',mv);svg.addEventListener('pointerdown',mv);
 }
 const tableHTML=(h,rows)=>`<details class="tbl"><summary>Show as table</summary><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
+
+/* ---------- heart rate and effort ---------- */
+const BANDS=[[0,50,'Very light'],[50,64,'Light'],[64,77,'Moderate'],[77,93,'Vigorous'],[93,999,'Peak']];
+function hrMax(){const p=S.profile||{};if(p.hrMax>=120&&p.hrMax<=230)return{v:Math.round(p.hrMax),est:false};
+  if(p.age>=10&&p.age<=100)return{v:Math.round(208-.7*p.age),est:true};return null}
+const bandOf=pc=>BANDS.find(b=>pc>=b[0]&&pc<b[1])[2];
+function watchCat(ses){const w=ses.watch||{};if(w.cat)return w.cat;const es=ses.entries||[];
+  if(es.length&&es.every(e=>e.type==='cd'))return'cardio';return es.length||ses.plan?'strength':'cardio'}
+function zoneText(m){const z=(a,b)=>`${Math.round(m.v*a/100)}–${Math.round(m.v*b/100)}`;
+  return `Zones use ${m.est?'an estimated':'your'} max of ${m.v} bpm${m.est?' (208 − 0.7 × age, which can miss by 10 or more)':''}. Light ${z(50,64)}, moderate ${z(64,77)}, vigorous ${z(77,93)} bpm.`}
+function hrGauge(m,avg,mx){const x0=10,x1=350,lo=40,hi=105,X=p=>x0+(Math.max(lo,Math.min(hi,p))-lo)/(hi-lo)*(x1-x0),
+  ops=[.14,.28,.5,.75,1],ed=[40,50,64,77,93,105];
+  const anc=x=>x<50?'start':x>310?'end':'middle';
+  let g=BANDS.map((b,i)=>{const a=X(ed[i]),z=X(ed[i+1]);
+    return `<rect x="${a}" y="26" width="${z-a}" height="14" fill="var(--accent)" fill-opacity="${ops[i]}" stroke="var(--surface)" stroke-width="2"/><text x="${(a+z)/2}" y="54" text-anchor="middle" style="font-size:10px">${b[2]}</text>`}).join('');
+  const xa=X(avg/m*100);g+=`<path d="M${xa-6},11 L${xa+6},11 L${xa},24Z" fill="var(--ink)"/><text class="gv" x="${xa}" y="8" text-anchor="${anc(xa)}">Avg ${avg}</text>`;
+  if(mx){const xm=X(mx/m*100);g+=`<path d="M${xm-6},76 L${xm+6},76 L${xm},63Z" fill="var(--ink)"/><text class="gv" x="${xm}" y="90" text-anchor="${anc(xm)}">Peak ${mx}</text>`}
+  return `<svg class="gauge" viewBox="0 0 360 96" role="img" aria-label="Heart rate against zones. Average ${avg} bpm${mx?`, peak ${mx} bpm`:''}, as a share of a ${m} bpm max.">${g}</svg>`}
+function verdict(ses){const w=ses.watch||{},m=hrMax(),cat=watchCat(ses),L=[],{avg,max:mx,dur}=w;let tone='info',head='Logged',gauge='';
+  if((avg&&(avg<30||avg>230))||(mx&&(mx<30||mx>250)))return{tone:'warn',head:'Check the numbers',lines:['Those heart rates look off. Enter beats per minute, for example 120.'],gauge:''};
+  if(avg&&mx&&avg>mx)return{tone:'warn',head:'Average is higher than peak',lines:['One of the two is mistyped. Peak should be the highest reading.'],gauge:''};
+  if(m&&avg){const pc=avg/m.v*100,r=Math.round(pc);gauge=hrGauge(m.v,avg,mx);
+    if(cat==='mobility'){head=`Average ${avg} bpm, ${r}% of max`;L.push('Heart rate isn’t the measure for stretching or yoga. A low number is expected.')}
+    else if(cat==='strength'){
+      if(pc<50){head=`Low for the session: ${r}% of max`;L.push('That is normal for lifting, because rests between sets pull the average down. For more heart work, trim rests to 45 to 60 seconds or pair moves back to back. If strength is the goal, this is fine.')}
+      else if(pc<70){tone='good';head=`Typical for lifting: ${r}% of max`;L.push('A good range for strength work. Your heart rises during sets and settles between them.')}
+      else if(pc<85){head=`High for lifting: ${r}% of max`;L.push('A busy session. Fine if it felt right. If form got sloppy, rest a bit longer between sets or lighten the load.')}
+      else{tone='warn';head=`Very high for lifting: ${r}% of max`;L.push('Check that the max estimate fits you and that the watch sat snug. If you felt dizzy, faint, or had chest pain, stop and get checked. Otherwise rest longer between sets.')}}
+    else{
+      if(pc<50){head=`Very light: ${r}% of max`;L.push('Easy movement, fine for recovery. To build fitness, pick up the pace or add a little incline for part of it.')}
+      else if(pc<64){head=`Light zone: ${r}% of max`;L.push('Comfortable and sustainable, good for recovery days and building a base. To push fitness, add a few brisk minutes.')}
+      else if(pc<77){tone='good';head=`Moderate zone: ${r}% of max`;L.push('This is the general-health target. You can talk but not sing at this effort.')}
+      else if(pc<93){head=`Vigorous zone: ${r}% of max`;L.push('A strong effort. Great once or twice a week. Keep the other days easier.')}
+      else{tone='warn';head=`Near your max: ${r}% of max`;L.push('Either the max estimate is low for you (set your own in Me) or the sensor spiked. If it really felt this hard, ease off.')}}}
+  else if(mx&&m){head=`Peak ${mx} bpm, ${Math.round(mx/m.v*100)}% of max`}
+  else if(avg||mx){head=`${avg?`Average ${avg}`:`Peak ${mx}`} bpm`;L.push('Add your age or your known max heart rate in Me to see zones.')}
+  else if(dur)head=`${Math.round(dur)} minutes logged`;
+  if(mx&&m&&mx>m.v*1.03)L.push(`Peak ${mx} is above ${m.est?'the estimated':'your'} max of ${m.v}. ${m.est?'Estimates can be off by 10 bpm or more, so if you know your real max, set it in Me. Wrist sensors can also spike.':'Wrist sensors can spike, so check it against how you felt.'}`);
+  if(dur&&dur<20)L.push(`${Math.round(dur)} minutes. Short sessions still count. A 20 minute walk is a win.`);
+  else if(dur&&dur>75)L.push('A long session. Great if you felt good. Past about an hour and a quarter, recovery usually matters more than more time.');
+  if(m&&(avg||mx))L.push(zoneText(m));
+  return{tone,head,lines:L,gauge}}
+function verdictHTML(ses){const w=ses.watch;if(!w||(!w.dur&&!w.avg&&!w.max))return'<p class="note">Add time and heart rate to see how the effort compared with your zones.</p>';
+  const v=verdict(ses);
+  return `${v.gauge}<div class="vd ${v.tone}"><b>${esc(v.head)}</b>${v.lines.map(l=>`<p>${esc(l)}</p>`).join('')}</div>
+  <p class="note">General guidance from percent-of-max zones, not medical advice. Wrist readings can be off.</p>`}
+function watchCard(ses){const w=ses.watch||{},cat=watchCat(ses);
+  const f=(k,l,ph)=>`<label class="lbl">${l}<input type="text" inputmode="decimal" data-b="watch" data-k="${k}" value="${esc(w[k]??'')}" placeholder="${ph}"></label>`;
+  return `<div class="card stack"><h2>Time and heart rate</h2>
+   <p class="note">${w.src==='import'?`Imported from ${esc(w.from||'a file')}${w.label?' · '+esc(w.label):''}. You can edit the numbers.`:'From your Apple Watch workout summary or any tracker. Fill in what you have.'}</p>
+   <div class="chips" role="group" aria-label="Workout type">${[['strength','Lifting'],['cardio','Cardio or walk'],['mobility','Stretch or yoga']].map(([k,l])=>`<button class="chip" data-act="wcat:${k}" aria-pressed="${cat===k}">${l}</button>`).join('')}</div>
+   <div class="grid3">${f('dur','Minutes','45')}${f('avg','Avg bpm','115')}${f('max','Peak bpm','150')}</div>
+   ${f('kcal','Active calories (optional)','250')}
+   <div id="wverdict" class="stack">${verdictHTML(ses)}</div></div>`}
+function hrHowTo(){return `<details class="tbl"><summary>How to get heart rate data in</summary><div class="stack" style="margin-top:8px">
+  <p><b>First, make sure the watch records it.</b> Start the workout from the Workout app on your Apple Watch and end it when you finish. Heart rate is only saved as a workout summary when a workout is running. For lifting choose Traditional Strength Training (or Functional Strength Training). Wear the watch snug, just above the wrist bone.</p>
+  <p><b>Option 1: type it in (10 seconds).</b> Open the Fitness app on your iPhone, tap the workout, and read the time, average heart rate and max heart rate. Then open the Log tab here and fill in the Time and heart rate card on that day.</p>
+  <p><b>Option 2: import many at once.</b> On your iPhone open the Health app, tap your picture at the top right, then Export All Health Data. Save export.zip to Files. In this app go to Me, tap Choose export.zip, and review the preview before importing. It can take a minute for a large export. Importing again later adds only new days. Days that already have time or heart rate are skipped, so your typed numbers are never overwritten.</p>
+  <p><b>Option 3: a CSV from another tracker.</b> A CSV with columns named like Date, Type, Duration, Avg Heart Rate, Max Heart Rate (and optionally Calories) works. The preview tells you how the duration was read.</p>
+  <p><b>If a workout shows no heart rate,</b> the watch did not record one for it, so there is nothing to import. Time still comes in.</p></div></details>`}
+function hrAbout(){return `<details class="tbl"><summary>About the zones and where they come from</summary><div class="stack" style="margin-top:8px">
+  <p>Zones are a share of your max heart rate. This app uses light 50 to 63%, moderate 64 to 76%, vigorous 77 to 93%. Groups draw these lines a little differently. The American Heart Association and an older CDC page use 50 to 70% for moderate and 70 to 85% for vigorous, with max = 220 minus age. Treat the edges as approximate. A few percent either way does not change the message.</p>
+  <p>Max heart rate here is 208 minus 0.7 times your age, or the number you enter in Me. At age 39 that matches 220 minus age (about 181). Both are estimates and can be off by 10 bpm or more.</p>
+  <p>The lifting ranges (about 50 to 70% is typical, over 85% is very high) are the app’s own rules of thumb, not a published standard. Rests between sets lower the average on purpose.</p>
+  <p>For weekly totals, WHO recommends 150 to 300 minutes of moderate activity or 75 to 150 minutes of vigorous activity, plus muscle strengthening on 2 or more days.</p>
+  <p class="note">Sources: <a href="https://www.ncbi.nlm.nih.gov/books/NBK566048/" target="_blank" rel="noopener">WHO physical activity guidelines</a> · <a href="https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates" target="_blank" rel="noopener">American Heart Association target heart rates</a> · <a href="https://webarchive.library.unt.edu/web/20120920235201/http://www.cdc.gov/physicalactivity/everyone/measuring/heartrate.html" target="_blank" rel="noopener">CDC (archived)</a>. General guidance, not medical advice.</p></div></details>`}
+function hrInsight(){const t=today(),all=sessDates().filter(d=>S.sessions[d].watch&&(S.sessions[d].watch.avg||S.sessions[d].watch.dur)),m=hrMax();
+  if(!all.length)return['Heart rate','Add time and heart rate to a workout (Log tab) or import from Apple Health (Me tab). Then this card tells you whether your effort matched your goal.'];
+  const L=[],wk0=monday(t),mins=[...Array(7)].reduce((a,_,i)=>a+(S.sessions[addDays(wk0,i)]?.watch?.dur||0),0);
+  const rec=all.filter(d=>S.sessions[d].watch.avg&&d>=addDays(t,-42)).slice(-5);
+  if(m&&rec.length){const by={strength:[],cardio:[]};
+    for(const d of rec){const c=watchCat(S.sessions[d]);if(by[c])by[c].push(S.sessions[d].watch.avg/m.v*100)}
+    const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+    if(by.strength.length){const p=mean(by.strength);L.push(`Lifting sessions averaged ${Math.round(p)}% of max. ${p<50?'That runs low, which is normal with long rests. Shorter rests or paired moves add heart work if you want it.':p>=70?'That runs high for lifting. Make sure you rest enough to keep your form and weights up.':'That is a typical range for strength work.'}`)}
+    if(by.cardio.length){const p=mean(by.cardio);L.push(`Cardio sessions averaged ${Math.round(p)}% of max. ${p<64?'Mostly light. For more fitness gain, make part of one walk brisk enough to reach the moderate zone (64% and up).':p<77?'Right in the moderate zone, the general-health target.':'Mostly vigorous. Keep most cardio easier and save hard days for one or two a week.'}`)}}
+  else if(!m&&rec.length)L.push('Add your age or max heart rate in Me so the zones can be worked out.');
+  L.push(`This week: ${Math.round(mins)} minutes logged with time. WHO suggests 150 to 300 minutes of moderate activity a week (or 75 to 150 vigorous), and walks count.`);
+  return['Heart rate',L.join('\n')]}
+
+/* ---------- watch import ---------- */
+const attrs=tag=>{const o={};tag.replace(/([\w:]+)="([^"]*)"/g,(_,k,v)=>{o[k]=v});return o};
+const niceType=t=>String(t||'Workout').replace(/^HKWorkoutActivityType/,'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2').trim()||'Workout';
+const catOf=t=>/strength|core ?training|kettlebell/i.test(t)?'strength':/yoga|flexib|pilates|barre|cooldown|mind|stretch|tai ?chi/i.test(t)?'mobility':'cardio';
+function parseWorkout(b){const a=attrs(b.slice(0,b.indexOf('>')+1)),rest=b.replace(/<WorkoutActivity\b[\s\S]*?<\/WorkoutActivity>/g,'');
+  let dur=parseFloat(a.duration);if(!(dur>=0))return null;const u=(a.durationUnit||'min').toLowerCase();if(u==='sec'||u==='s')dur/=60;else if(u==='hr'||u==='h')dur*=60;
+  const d=(a.startDate||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return null;const label=niceType(a.workoutActivityType);
+  let avg=null,mx=null,mn=null,kcal=null;
+  for(const m of rest.matchAll(/<WorkoutStatistics\b[^>]*>/g)){const st=attrs(m[0]);
+    if(st.type==='HKQuantityTypeIdentifierHeartRate'){avg=+st.average||null;mx=+st.maximum||null;mn=+st.minimum||null}
+    else if(st.type==='HKQuantityTypeIdentifierActiveEnergyBurned'&&st.sum)kcal=+st.sum||null}
+  if(kcal==null&&a.totalEnergyBurned&&/cal/i.test(a.totalEnergyBurnedUnit||'kcal'))kcal=+a.totalEnergyBurned||null;
+  const R=x=>x?Math.round(x):null;
+  return{d,label,cat:catOf(label),dur:Math.round(dur*10)/10,avg:R(avg),max:R(mx),min:R(mn),kcal:R(kcal)}}
+async function scanXml(stream,onProg){const rd=stream.getReader(),dec=new TextDecoder();let buf='',out=[],bytes=0,n=0;
+  const drain=()=>{for(;;){const s0=buf.indexOf('<Workout ');if(s0<0){buf=buf.slice(-12);return}
+    const g=buf.indexOf('>',s0);if(g<0){buf=buf.slice(s0);return}
+    let e;if(buf[g-1]==='/')e=g+1;else{const c=buf.indexOf('</Workout>',g);if(c<0){buf=buf.slice(s0);return}e=c+10}
+    const w=parseWorkout(buf.slice(s0,e));if(w)out.push(w);buf=buf.slice(e)}};
+  for(;;){const{done,value}=await rd.read();if(done)break;bytes+=value.length;buf+=dec.decode(value,{stream:true});drain();if(buf.length>8e6)buf=buf.slice(-12);if(++n%20===0)onProg(bytes)}
+  buf+=dec.decode();drain();return out}
+async function zipXmlStream(file){
+  const tail=await file.slice(Math.max(0,file.size-66000)).arrayBuffer(),dv=new DataView(tail);let e=-1;
+  for(let i=tail.byteLength-22;i>=0;i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('This does not look like a zip file.');
+  const n=dv.getUint16(e+10,true),cdSize=dv.getUint32(e+12,true),cdOff=dv.getUint32(e+16,true);
+  if(cdOff===0xFFFFFFFF||cdSize===0xFFFFFFFF)throw new Error('zip64');
+  const cd=new DataView(await file.slice(cdOff,cdOff+cdSize).arrayBuffer());let p=0,hit=null;
+  for(let i=0;i<n&&p+46<=cd.byteLength;i++){if(cd.getUint32(p,true)!==0x02014b50)break;
+    const meth=cd.getUint16(p+10,true),cs=cd.getUint32(p+20,true),nl=cd.getUint16(p+28,true),el=cd.getUint16(p+30,true),cl=cd.getUint16(p+32,true),lo=cd.getUint32(p+42,true);
+    const name=new TextDecoder().decode(new Uint8Array(cd.buffer,p+46,nl));
+    if(/(^|\/)export\.xml$/i.test(name)){hit={meth,cs,lo};break}p+=46+nl+el+cl}
+  if(!hit)throw new Error('I could not find export.xml inside that zip.');
+  if(hit.cs===0xFFFFFFFF||hit.lo===0xFFFFFFFF)throw new Error('zip64');
+  const lh=new DataView(await file.slice(hit.lo,hit.lo+30).arrayBuffer()),start=hit.lo+30+lh.getUint16(26,true)+lh.getUint16(28,true);
+  let st=file.slice(start,start+hit.cs).stream();
+  if(hit.meth===8){if(typeof DecompressionStream==='undefined')throw new Error('nodecomp');st=st.pipeThrough(new DecompressionStream('deflate-raw'))}
+  else if(hit.meth!==0)throw new Error('This zip uses a compression type I can’t read.');
+  return st}
+function parseCSV(txt){const rows=[];let r=[],f='',q=false;
+  for(let i=0;i<txt.length;i++){const c=txt[i];
+    if(q){if(c==='"'){if(txt[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){r.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&txt[i+1]==='\n')i++;r.push(f);f='';if(r.some(x=>x.trim()))rows.push(r);r=[]}else f+=c}
+  r.push(f);if(r.some(x=>x.trim()))rows.push(r);return rows}
+function csvWorkouts(txt){const R=parseCSV(txt.replace(/^﻿/,''));if(R.length<2)throw new Error('That CSV has no rows.');
+  const H=R[0].map(h=>h.trim().toLowerCase()),ix=re=>H.findIndex(h=>re.test(h));
+  const cD=ix(/^(date|start|workout ?date|start ?time|start ?date|begin)/),cT=ix(/type|activity|sport|workout ?name/),cU=ix(/duration|elapsed|moving|total ?time/),
+    cA=ix(/(avg|average|mean).*(hr|heart)|(hr|heart).*(avg|average|mean)/),cM=ix(/(max|peak).*(hr|heart)|(hr|heart).*(max|peak)/),cK=ix(/calor|kcal|energy/);
+  if(cD<0||(cA<0&&cM<0&&cU<0))throw new Error('I could not find the columns. Expected headers like Date, Type, Duration, Avg Heart Rate, Max Heart Rate.');
+  const hh=cU>=0?H[cU]:'';let unit=/sec|\(s\)/.test(hh)?'s':/hour|\(h|\bhr\b/.test(hh)?'h':/min/.test(hh)?'m':null,guessed=false;
+  if(!unit&&cU>=0){const v=R.slice(1).map(r=>parseFloat(r[cU])).filter(x=>x>0).sort((a,b)=>a-b);unit=v.length&&v[v.length>>1]>300?'s':'m';guessed=true}
+  const toMin=v=>{v=String(v||'').trim();if(!v)return null;if(v.includes(':')){const p=v.split(':').map(Number);if(p.some(isNaN))return null;return p.length===3?p[0]*60+p[1]+p[2]/60:p[0]+p[1]/60}
+    const x=parseFloat(v);return isFinite(x)?x*(unit==='s'?1/60:unit==='h'?60:1):null};
+  const dateOf=v=>{v=(v||'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(v))return v.slice(0,10);const t=new Date(v);return isNaN(t)?null:ds(t)};
+  const N=(r,c)=>{const x=c>=0?parseFloat(r[c]):NaN;return isFinite(x)&&x>0?Math.round(x):null};
+  const rows=[];for(const r of R.slice(1)){const d=dateOf(r[cD]);if(!d)continue;const label=cT>=0&&r[cT]?r[cT].trim():'Workout',dur=toMin(cU>=0?r[cU]:null);
+    rows.push({d,label,cat:catOf(label),dur:dur!=null?Math.round(dur*10)/10:0,avg:N(r,cA),max:N(r,cM),min:null,kcal:N(r,cK)})}
+  return{rows,note:cU>=0?`Duration read as ${unit==='s'?'seconds':unit==='h'?'hours':'minutes'}${guessed?' (a guess from the values)':''}.`:'No duration column found.'}}
+function prepRows(rows,from,note){const by={},sc=x=>(x.cat==='strength'?1000:0)+x.dur,cut=addDays(today(),-730);let kept=0;
+  for(const w of rows){if(w.d<cut||w.d>today())continue;if(w.dur<5&&!w.avg)continue;kept++;const c=by[w.d];if(!c||sc(w)>sc(c))by[w.d]=w}
+  const days=Object.keys(by).sort().reverse(),use=[];let skipped=0;
+  for(const d of days){const ex=S.sessions[d];if(ex&&ex.watch&&(ex.watch.avg||ex.watch.dur)){skipped++;continue}use.push(by[d])}
+  const withHr=use.filter(r=>r.avg).length;
+  return{from,rows:use,skipped,extras:kept-days.length,note:[note,use.length&&!withHr?'None of these workouts have heart-rate data. The watch has to record heart rate during the workout.':''].filter(Boolean).join(' ')}}
+async function importWatch(file){if(!file)return;S.impDone='';S.imp={busy:`Reading ${file.name}…`};render(true);
+  const setMsg=t=>{const m=$('#hrmsg');if(m)m.textContent=t};
+  try{const nm=file.name.toLowerCase();let res;
+    if(nm.endsWith('.csv')||file.type==='text/csv'){const c=csvWorkouts(await file.text());res=prepRows(c.rows,'CSV file',c.note)}
+    else if(nm.endsWith('.xml')||nm.endsWith('.zip')){if(!file.stream)throw new Error('nostream');
+      const st=nm.endsWith('.xml')?file.stream():await zipXmlStream(file);
+      const rows=await scanXml(st,b=>setMsg(`Reading… ${Math.round(b/1048576)} MB scanned`));
+      if(!rows.length)throw new Error('No workouts found in that file. Make sure it is the export from the Health app.');
+      res=prepRows(rows,'Apple Health','')}
+    else throw new Error('Choose export.zip, export.xml, or a CSV file.');
+    S.imp=res}
+  catch(e){const m=e&&e.message||'';S.imp={err:/zip64|nodecomp|nostream/.test(m)?'This browser can’t open that zip. Unzip it in the Files app, then choose the export.xml file inside.':m||'I couldn’t read that file.'}}
+  render(true)}
+function applyImport(){const i=S.imp;if(!i||!i.rows)return;let made=0,att=0;
+  for(const w of i.rows){let s=S.sessions[w.d];
+    if(!s){s={date:w.d,plan:null,title:w.label,entries:[],note:'',feel:null,done:true,created:Date.now()};
+      if(/walking/i.test(w.label)){const ex=exById('walk');if(ex)s.entries=[{ex:ex.id,name:ex.name,type:ex.type,target:'',sets:[{ok:true,m:Math.round(w.dur)}],from:null}]}
+      S.sessions[w.d]=s;made++}else att++;
+    const o={src:'import',from:i.from,label:w.label,cat:w.cat};for(const k of['dur','avg','max','min','kcal'])if(w[k])o[k]=w[k];s.watch=o}
+  saveLocal();S.impDone=`Imported ${i.rows.length} workout${i.rows.length===1?'':'s'}: ${made} new day${made===1?'':'s'}, ${att} added to days you already logged.`;S.imp=null;render(true)}
+function impHTML(){const i=S.imp;if(!i)return S.impDone?`<div class="done">${esc(S.impDone)}</div>`:'';
+  if(i.busy)return `<p class="note" id="hrmsg">${esc(i.busy)}</p>`;
+  if(i.err)return `<div class="flag">${esc(i.err)}</div>`;
+  const n=i.rows.length,wh=i.rows.filter(r=>r.avg).length;
+  return `<div class="stack"><p><b>${n}</b> workout day${n===1?'':'s'} ready from ${esc(i.from)}${n&&wh<n?`, ${wh} with heart rate`:''}.${i.skipped?` ${i.skipped} skipped because that day already has time or heart rate.`:''}${i.extras>0?` ${i.extras} extra same-day workout${i.extras===1?'':'s'} left out (the lifting or longest one is kept).`:''}</p>
+   ${i.note?`<p class="note">${esc(i.note)}</p>`:''}
+   ${n?tableHTML(['Date','Workout','Min','Avg','Peak'],i.rows.slice(0,40).map(r=>[fmtD(r.d,{month:'short',day:'numeric',year:'numeric'}),r.label,r.dur?String(Math.round(r.dur)):'',r.avg?String(r.avg):'',r.max?String(r.max):''])):''}
+   <div class="row">${n?`<button class="btn grow" data-act="impgo">Import ${n}</button>`:''}<button class="btn out ${n?'':'grow'}" data-act="impcancel">${n?'Cancel':'Close'}</button></div></div>`}
 
 /* ---------- views ---------- */
 const ICON={
@@ -500,10 +677,11 @@ function profileFields(p){const has=p.heightIn!=null,ft=has?Math.floor(p.heightI
  <div class="grid3"><label class="lbl">Start lb<input id="pf-start" type="text" inputmode="decimal" placeholder="160" value="${esc(p.startLb??'')}"></label>
  <label class="lbl">Goal lb<input id="pf-goal" type="text" inputmode="decimal" placeholder="150" value="${esc(p.goalLb??'')}"></label>
  <label class="lbl">Days / week<input id="pf-target" type="text" inputmode="numeric" value="${esc(p.target??3)}"></label></div>
+ <label class="lbl">Max heart rate, bpm (optional)<input id="pf-hrmax" type="text" inputmode="numeric" placeholder="Blank = estimate from age" value="${esc(p.hrMax??'')}"></label>
  <label class="lbl">Notes (limits, preferences)<textarea id="pf-notes" placeholder="e.g. sore knees some weeks, prefers machines">${esc(p.notes||'')}</textarea></label>`}
 function readProfile(){const g=id=>$('#'+id).value,ft=num(g('pf-ft')),inch=num(g('pf-in'));
   return{name:g('pf-name').trim(),age:num(g('pf-age')),heightIn:ft==null&&inch==null?null:Math.round((ft||0)*12+(inch||0)),startLb:num(g('pf-start')),goalLb:num(g('pf-goal')),
-    target:Math.max(1,Math.min(7,Math.round(num(g('pf-target'))||3))),notes:g('pf-notes').trim(),startDate:S.profile?.startDate||today()}}
+    target:Math.max(1,Math.min(7,Math.round(num(g('pf-target'))||3))),hrMax:(v=>v>=120&&v<=230?Math.round(v):null)(num(g('pf-hrmax'))),notes:g('pf-notes').trim(),startDate:S.profile?.startDate||today()}}
 
 function viewToday(){
   const d=S.date,ses=cur(),ws=monday(d),days=[...Array(7)].map((_,i)=>addDays(ws,i)),t=today(),target=S.profile.target||3;
@@ -528,6 +706,7 @@ function viewToday(){
     ${ses.done?`<div class="done">Workout saved. ${sets} sets${vol?`, ${Math.round(vol).toLocaleString()} lb total`:''}. Add how it felt below.</div>`:''}
     ${(ses.entries||[]).map(entryHTML).join('')}
     <button class="btn out wide" data-act="openadd">Add exercise</button>
+    ${watchCard(ses)}
     <div class="card stack"><h2>How it felt</h2><div class="chips feel" role="group" aria-label="Energy">${['Rough','Low','OK','Good','Great'].map((l,i)=>`<button class="chip" data-act="sfeel:${i+1}" aria-pressed="${ses.feel===i+1}">${l}</button>`).join('')}</div>
     <textarea id="snote" data-b="snote" placeholder="Notes: what felt strong, what to change next time" aria-label="Workout notes">${esc(ses.note||'')}</textarea></div>
     <button class="link bad" data-act="delsession">${S.confirmDel?'Tap again to delete this workout':'Delete this workout'}</button>`}
@@ -571,12 +750,20 @@ function viewProgress(){
   const wk0=monday(today()),bars=[...Array(12)].map((_,i)=>{const s=addDays(wk0,-7*(11-i)),v=[...Array(7)].filter((_,j)=>isActive(S.sessions[addDays(s,j)])).length;
     return{v,short:fmtD(s),tip:`Week of ${fmtD(s,{month:'short',day:'numeric'})}`}});
   const ccard=`<div class="card"><h2>Consistency</h2><p class="note" style="margin-bottom:4px">Active days per week. Walks count.</p><div id="ch-c"></div>${tableHTML(['Week of','Active days'],bars.slice().reverse().map(b=>[b.short,String(b.v)]))}</div>`;
+  const hd=sessDates().filter(d=>S.sessions[d].watch&&S.sessions[d].watch.avg),hm=hrMax();
+  S._ph=hd.map(d=>{const w=S.sessions[d].watch;return{t:pd(d).getTime(),y:w.avg,tip:`${S.sessions[d].title}${w.dur?' \u00b7 '+Math.round(w.dur)+' min':''}${hm?' \u00b7 '+Math.round(w.avg/hm.v*100)+'% of max':''}`}});S._phm=hm;
+  const mb=[...Array(12)].map((_,i)=>{const s=addDays(wk0,-7*(11-i)),v=Math.round([...Array(7)].reduce((a,_,j)=>a+(S.sessions[addDays(s,j)]?.watch?.dur||0),0));return{v,short:fmtD(s),tip:`Week of ${fmtD(s,{month:'short',day:'numeric'})}`}});S._pm=mb;
+  const hcard=hd.length?`<div class="card"><h2>Heart rate</h2><p class="note" style="margin-bottom:4px">Average heart rate per workout${hm?`. Dashed lines mark the moderate (64%) and vigorous (77%) zones of a ${hm.v} bpm max`:''}.</p><div id="ch-h"></div>
+   ${tableHTML(['Date','Workout','Avg bpm'],hd.slice().reverse().slice(0,40).map(d=>[fmtD(d,{month:'short',day:'numeric',year:'numeric'}),S.sessions[d].title,String(S.sessions[d].watch.avg)]))}</div>`:'';
+  const mcard=mb.some(b=>b.v>0)?`<div class="card"><h2>Workout minutes</h2><p class="note" style="margin-bottom:4px">Minutes per week from workouts where you logged time. Dashed line: 150 minutes, the low end of the WHO weekly range for moderate activity.</p><div id="ch-m"></div>${tableHTML(['Week of','Minutes'],mb.slice().reverse().map(b=>[b.short,String(b.v)]))}</div>`:'';
   S._pw=Wr;S._ps=hist;S._pb=bars;S._psx=sx;
-  return `<h1>Progress</h1>${tiles}${wcard}${scard}${ccard}`}
+  return `<h1>Progress</h1>${tiles}${wcard}${scard}${ccard}${hcard}${mcard}`}
 function drawCharts(){
   const a=$('#ch-w');if(a)lineChart(a,S._pw.map(x=>({t:pd(x.d).getTime(),y:x.lb})),{unit:'lb',goal:S.profile.goalLb,label:'Body weight over time'});
   const b=$('#ch-s');if(b)lineChart(b,S._ps.map(h=>({t:pd(h.d).getTime(),y:h.y,tip:h.tip})),{unit:S._psx?unitOf(S._psx.type):'',label:'Strength over time'});
-  const c=$('#ch-c');if(c)barChart(c,S._pb,{target:S.profile.target||3,label:'Active days per week'})}
+  const c=$('#ch-c');if(c)barChart(c,S._pb,{target:S.profile.target||3,label:'Active days per week'});
+  const h=$('#ch-h');if(h){const m=S._phm;lineChart(h,S._ph,{unit:'bpm',label:'Average heart rate per workout',refs:m?[{y:Math.round(m.v*.64),label:'Moderate 64%'},{y:Math.round(m.v*.77),label:'Vigorous 77%'}]:[]})}
+  const mm=$('#ch-m');if(mm)barChart(mm,S._pm,{target:150,label:'Workout minutes per week',fmt:v=>`${v} min`})}
 
 function ensureDraft(d){if(!S.draft||S.draft.date!==d)S.draft={date:d,text:S.days[d]?.note||'',feel:S.days[d]?.feel||null}}
 function viewDiary(){const d=S.diaryDate;ensureDraft(d);const has=!!S.days[d];
@@ -663,7 +850,13 @@ const FAQ=[
 ['I\u2019m new to free weights. How do I start safely?','free weights beginner learn form safe start light dumbbell spotter new',`- Learn each move with a very light weight, then add weight slowly.
 - Mirror, or a short phone video from the side, shows more than you can feel.
 - Use dumbbells and kettlebells before barbells. They're easier to bail out of.
-- Pair each new free-weight move with the machine version you already know, then shift over week by week.`]
+- Pair each new free-weight move with the machine version you already know, then shift over week by week.`],
+['What should my heart rate be during a workout?','heart rate bpm zone zones effort intensity max pulse watch too high too low',`- Zones are a share of your max heart rate. Moderate is about 64 to 76%, vigorous about 77 to 93%.
+- For walking, biking and other cardio, moderate is the general-health target. You can talk but not sing.
+- For lifting, the average is lower because you rest between sets. Roughly 50 to 70% is typical.
+- Different groups draw the lines a little differently. The American Heart Association uses 50 to 70% for moderate and 70 to 85% for vigorous.
+- Your max is estimated from age, so zones can be off by 10 bpm or more. If you know your real max, enter it in Me.
+- Dizziness, chest pain or an unusually racing pulse that doesn't settle: stop and get it checked.`]
 ];
 function faqMatch(q){const words=q.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);if(!words.length)return[];
   return FAQ.map((f,i)=>{const hay=(f[0]+' '+f[1]).toLowerCase();let s=0;for(const w of words)if(hay.includes(w))s+=f[1].split(' ').includes(w)?3:1;return{i,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,2).map(x=>x.i)}
@@ -689,12 +882,14 @@ function insights(){const out=[],p=S.profile,W=wArr(),t=today(),target=p.target|
   if(stuck.length)out.push(['Stuck lifts',`${stuck.slice(0,4).join(', ')}: same top weight for 3 sessions. Add a rep per set or try the next small jump. If it still stalls, drop about 10% for a week.`]);
   const rj=['knee','elbow'].filter(j=>S.rest[j]);
   if(rj.length)out.push(['Easing back in',`${rj.join(' and ')} marked as resting. Flagged exercises swap automatically in new workouts. When you return, go lighter, use more reps, and stop at sharp pain.`]);
-  if(out.length<=2&&!sessDates().length)out.push(['Getting started','Log a few workouts and tick off your sets. Tips about adding weight and stuck lifts show up here.']);
+  out.push(hrInsight());
+  if(out.length<=3&&!sessDates().length)out.push(['Getting started','Log a few workouts and tick off your sets. Tips about adding weight and stuck lifts show up here.']);
   return out}
 function viewCoach(){const q=S.cq||'',res=S.cres||[];
   return `<h1>Coach</h1><p class="sub">Tips built from your own numbers, plus answers to common questions. General guidance, not medical advice.</p>
   ${insights().map(([h,b])=>`<div class="card"><h2>${esc(h)}</h2>${b.split('\n').map(l=>`<p>${esc(l)}</p>`).join('')}</div>`).join('')}
   <div class="card stack"><h2>Exercise guide</h2><p class="note">Form steps, safety tips and a muscle map for every exercise in your library.</p><button class="btn out" data-act="guide">Browse exercises</button></div>
+  <div class="card stack"><h2>Heart rate help</h2><p class="note">How to get your Watch data in, and what the zones mean.</p>${hrHowTo()}${hrAbout()}</div>
   <div class="card stack"><h2>Ask a question</h2><div class="row"><input id="cq" type="text" enterkeyhint="search" placeholder="e.g. my knee hurts on leg press" value="${esc(q)}" aria-label="Question"><button class="btn" data-act="cask">Ask</button></div>
   ${q&&!res.length?`<p class="note">No canned answer for that. Try other words, or pick a topic below. For pain that's sharp, lasting or comes with swelling, see a clinician.</p>`:''}
   ${res.map(i=>`<div class="card stack" style="background:var(--surface-2)"><h2 style="margin:0">${esc(FAQ[i][0])}</h2><div>${md(FAQ[i][2])}</div></div>`).join('')}
@@ -706,11 +901,16 @@ function viewMe(){const p=S.profile;
    <div class="chips"><button class="chip warn" data-act="rest:knee" aria-pressed="${S.rest.knee}">Knee</button><button class="chip warn" data-act="rest:elbow" aria-pressed="${S.rest.elbow}">Elbow</button></div></div>
   <div class="card stack"><h2>Your exercises</h2>${S.custom.length?S.custom.map(c=>`<div class="row between"><span>${esc(c.name)} <span class="note">${esc(c.group)} · ${TL[c.type]}</span></span><button class="link bad" data-act="delcustom:${esc(c.id)}">Delete</button></div>`).join(''):'<p class="note">The library has 44 exercises. Add your own when you need something else.</p>'}
    <button class="btn out" data-act="newcustom">Create an exercise</button></div>
+  <div class="card stack"><h2>Watch and heart rate</h2><p class="note">Bring in workout time and heart rate from Apple Health, or type them into any workout. Files are read on this device and never uploaded.</p>
+   ${hrHowTo()}${hrAbout()}
+   <label class="btn" style="display:flex;align-items:center;justify-content:center;cursor:pointer" for="hrf">Choose export.zip, export.xml or CSV</label><input id="hrf" type="file" accept=".zip,.xml,.csv,text/csv,text/xml,application/zip" hidden>
+   ${impHTML()}</div>
   <div class="card stack"><h2>Your data</h2><p class="note">Everything is saved in this browser on this device, never on a server. ${S.lastBackup?`Last backup: ${new Date(S.lastBackup).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}.`:'No backup yet.'}</p>
    <button class="btn" data-act="exp:j">Download backup (JSON)</button>
    <label class="btn out" style="display:flex;align-items:center;justify-content:center;cursor:pointer" for="imp">Restore from backup</label><input id="imp" type="file" accept="application/json,.json" hidden>
    <p class="note" id="impmsg">Restoring merges the backup into your log. Days that exist in both take the backup\u2019s version.</p>
-   <div class="row"><button class="btn out grow" data-act="exp:w">Workouts (CSV)</button><button class="btn out grow" data-act="exp:b">Weights (CSV)</button></div></div>`}
+   <div class="row"><button class="btn out grow" data-act="exp:w">Workouts (CSV)</button><button class="btn out grow" data-act="exp:b">Weights (CSV)</button></div>
+   <button class="btn out" data-act="exp:h">Heart rate (CSV)</button></div>`}
 
 /* ---------- sheet ---------- */
 function renderSheet(){const el=$('#sheet'),sh=S.sheet;if(!sh){el.innerHTML='';return}
@@ -753,11 +953,15 @@ document.addEventListener('input',e=>{const t=e.target,b=t.dataset?.b;
   if(b==='set'){const s=cur()?.entries[+t.dataset.ei]?.sets[+t.dataset.si];if(s){const v=num(t.value);if(t.value.trim()==='')delete s[t.dataset.k];else if(v!=null)s[t.dataset.k]=v;saveSession(S.date)}}
   else if(b==='snote'){cur().note=t.value;saveSession(S.date)}
   else if(b==='dt'){S.draft.text=t.value}
+  else if(b==='watch'){const se=cur();if(!se)return;const w=se.watch=se.watch||{};const v=num(t.value);
+    if(t.value.trim()===''||v==null||v<0)delete w[t.dataset.k];else w[t.dataset.k]=v;w.src='manual';
+    if(!w.dur&&!w.avg&&!w.max&&!w.kcal&&!w.cat)delete se.watch;saveSession(S.date);const vh=$('#wverdict');if(vh)vh.innerHTML=verdictHTML(se)}
   else if(t.id==='sq'&&S.sheet){S.sheet.q=t.value;$('#pl').innerHTML=pickList()}
   });
 document.addEventListener('change',e=>{const t=e.target;
   if(t.id==='dd'){S.diaryDate=t.value||today();S.draft=null;render(true)}
   else if(t.id==='sx'){S.strengthEx=t.value;render(true)}
+  else if(t.id==='hrf'){importWatch(t.files&&t.files[0]);t.value=''}
   else if(t.id==='imp'){importBackup(t.files&&t.files[0]);t.value=''}});
 document.addEventListener('keydown',e=>{if(e.target.id==='cq'&&e.key==='Enter'){e.preventDefault();S.cq=e.target.value.trim();S.cres=faqMatch(S.cq);render(true)}});
 
@@ -776,6 +980,9 @@ document.addEventListener('click',async ev=>{
   case'delset':{const[ei,si]=arg.split(':').map(Number);cur().entries[ei].sets.splice(si,1);saveSession(S.date);render(true);break}
   case'rm':cur().entries.splice(+arg,1);saveSession(S.date);render(true);break;
   case'finish':cur().done=!cur().done;saveSession(S.date);render(true);break;
+  case'wcat':{const se=cur();se.watch=se.watch||{src:'manual'};se.watch.cat=arg;saveSession(S.date);render(true);break}
+  case'impgo':applyImport();break;
+  case'impcancel':S.imp=null;S.impDone='';render(true);break;
   case'sfeel':cur().feel=cur().feel===+arg?null:+arg;saveSession(S.date);render(true);break;
   case'delsession':if(!S.confirmDel){S.confirmDel=true;render(true)}else{delete S.sessions[S.date];S.confirmDel=false;clearTimeout(timers[S.date]);pendingDates.delete(S.date);persist('sessions',S.date,null);render(true)}break;
   case'openadd':S.sheet={k:'add',q:'',g:'All'};renderSheet();break;
@@ -818,8 +1025,9 @@ function exportCSV(kind){const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
   if(kind==='j'){S.lastBackup=Date.now();saveLocal();downloadFile(`training-log-backup-${today()}.json`,JSON.stringify({...snapshot(),exportedAt:new Date().toISOString()}),'application/json');render(true);return}
   let rows;
   if(kind==='w')rows=[['date','workout','exercise','set','weight_lb','reps','seconds','minutes','miles']].concat(sessDates().flatMap(d=>(S.sessions[d].entries||[]).flatMap(e=>okSets(e).map((s,i)=>[d,S.sessions[d].title,e.name,i+1,s.w??'',s.r??'',s.s??'',s.m??'',s.d??'']))));
+  else if(kind==='h'){const m=hrMax();rows=[['date','workout','minutes','avg_bpm','peak_bpm','calories','avg_pct_of_max']].concat(sessDates().filter(d=>S.sessions[d].watch).map(d=>{const w=S.sessions[d].watch;return[d,S.sessions[d].title,w.dur??'',w.avg??'',w.max??'',w.kcal??'',m&&w.avg?Math.round(w.avg/m.v*100):'']}))}
   else rows=[['date','weight_lb']].concat(wArr().map(x=>[x.d,x.lb]));
-  downloadFile(kind==='w'?'training-log-workouts.csv':'training-log-weights.csv',rows.map(r=>r.map(q).join(',')).join('\n'),'text/csv')}
+  downloadFile(kind==='w'?'training-log-workouts.csv':kind==='h'?'training-log-heart-rate.csv':'training-log-weights.csv',rows.map(r=>r.map(q).join(',')).join('\n'),'text/csv')}
 function importBackup(file){if(!file)return;const msg=$('#impmsg');
   file.text().then(txt=>{const d=JSON.parse(txt);if(!d||typeof d!=='object'||(!d.sessions&&!d.weights&&!d.days))throw new Error('bad');
     const ns=Object.keys(d.sessions||{}).length,nw=Object.keys(d.weights||{}).length;
