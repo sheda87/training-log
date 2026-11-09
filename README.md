@@ -4,9 +4,14 @@ A private workout tracker that runs in the phone browser and installs to the hom
 
 - **Landing screen** with a greeting that uses your preferred name, your week so far and what's up next.
 - **Exercise guides**: tap any exercise name (or How to) for step-by-step form, safety tips and a front/back muscle map showing main and helping muscles. Browse them all in the Coach tab.
-- **Log** a 3-day full-body plan (A, B, C) or build your own. Sets are prefilled from last time; tick each one when done.
+- **Log** a 3-day full-body plan (A, B, C, each with two core moves) or build your own. Sets are prefilled from last time; tick each one when done.
 - **Flexible exercises**: weight and reps, reps only, hold time, weight and time, or cardio. Add your own.
-- **Joint rest markers** (knee, elbow) flag exercises and swap them automatically in new workouts.
+- **Swap suggestions**: when a joint is resting, a flagged exercise shows a suggested replacement with a one-line reason and a one-tap swap. The Swap sheet lists suggestions first.
+- **Joint rest markers** (knee, elbow, ankle, shoulder) flag exercises and swap them automatically in new workouts. Me shows exactly which exercises in your plan would change, and a banner swaps an already-started workout in one tap.
+- **Notes that help**: words like "sore knee", "shoulder tweak", "tired" or "leg press felt easy" in your diary and workout notes can suggest resting a joint, resuming it, a light walk day, or a weight change on that exercise. Nothing changes until you tap, it all stays on your device, and you can turn it off in Me.
+- **Mobility and core**: a 10 minute warm-up, a 6 minute core finisher and a 5 minute cooldown you can add to any workout with one tap, plus a 25 minute mobility + core day that counts as an active day. Each move has a form guide. Optionally start every workout with the warm-up (Me tab).
+- **Weekly goal**: pick your active days per week (1 to 7) in the profile. It applies right away.
+- **Timer**: every timed set (planks, stretches, carries, cardio) has a play button. Get-ready countdown, seconds-to-goal, a beep at your goal, a Pause button, an automatic switch-sides cue for "each side" holds, and the screen stays awake. Done saves the time and ticks the set.
 - **Diary** notes by day, plus a note on every workout.
 - **Progress** charts: body weight against your goal, strength per exercise, active days per week.
 - **Heart rate and effort**: log minutes, average and peak heart rate on any workout, or import them from Apple Health (Me tab). You get a zone gauge and plain-language feedback on whether the effort was too low, typical or too high for the kind of workout, plus progress charts.
@@ -48,3 +53,6 @@ Everything is stored in your browser's local storage on that one device. Nothing
 | `sw.js` | Offline support. Network first, so updates appear when you're online |
 
 To update the app later, replace `index.html` in the repo. To force devices to refresh the offline cache, change `V` in `sw.js`.
+
+## Exercise diagrams
+Each free-weight, bodyweight and mobility exercise has simple stick-figure drawings (start and end positions) at the top of its guide sheet. They are drawn in code, work offline, and follow the written steps. They are sketches, not a substitute for the steps or a coach.
