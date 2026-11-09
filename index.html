@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Training Log">
-<meta name="description" content="A private workout log: flexible exercise logging, diary notes, progress charts and a built-in coach. Data stays in your browser.">
+<meta name="description" content="A private workout log: flexible exercise logging, journal notes, progress charts and a built-in coach. Data stays in your browser.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -61,6 +61,10 @@ main{display:flex;flex-direction:column;gap:14px;padding-top:6px}
 .btn.wide{width:100%}
 .btn.out{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn.sm{min-height:38px;padding:0 14px;font-size:14px}
+.irid{border:0;border-radius:10px;min-height:40px;padding:0 16px;font-weight:800;color:#111;background:linear-gradient(110deg,#ff7ad9,#ffd36e,#7dffb2,#6ee7ff,#a78bfa,#ff7ad9);background-size:300% 100%;box-shadow:0 0 0 1.5px rgba(255,255,255,.55) inset,0 2px 10px rgba(120,90,255,.35);text-shadow:0 1px 0 rgba(255,255,255,.4)}
+@media (prefers-reduced-motion:no-preference){.irid{animation:irid 4s linear infinite}}
+@keyframes irid{to{background-position:300% 0}}
+.irid:active{transform:scale(.97)}
 .link{background:none;border:0;color:var(--accent);padding:8px 2px;font-weight:600;min-height:40px}
 .link.bad{color:var(--bad)}
 .chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;min-height:38px;padding:0 14px;font-size:14px;font-weight:500}
@@ -144,7 +148,7 @@ details.tbl td,details.tbl th{padding:5px 4px;border-bottom:1px solid var(--line
 details.tbl th{color:var(--ink-2);font-size:12px}
 .empty{color:var(--ink-2);font-size:14px;padding:18px 4px;text-align:center}
 
-/* diary + chat */
+/* journal + chat */
 .entry .date{font:600 19px var(--display);letter-spacing:.02em}
 .entry .body{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:4px}
 .badge{font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px;background:var(--surface-2);color:var(--ink-2)}
@@ -528,7 +532,7 @@ const POSE={
 };
 
 function infoHTML(id,from){const ex=exById(id);if(!ex)return'<p class="empty">Exercise not found.</p>';const g=guideFor(id);
-  return `<div class="row between"><button class="link" data-act="${from?'infoback':'closesheet'}">${from?'‹ Back':'Close'}</button>${from&&from.k==='guide'&&cur()?`<button class="btn sm" data-act="addto:${esc(id)}">Add to today</button>`:''}</div>
+  return `<div class="row between"><button class="irid" data-act="${from?'infoback':'closesheet'}">${from?'‹ Back':'Close'}</button>${from&&from.k==='guide'&&cur()?`<button class="btn sm" data-act="addto:${esc(id)}">Add to today</button>`:''}</div>
   <div><h2 style="margin:0 0 2px;color:var(--ink)">${esc(ex.name)}</h2><p class="note">${esc(ex.group)} · ${esc(ex.equip||'')} · logs ${esc(TL[ex.type].toLowerCase())}</p></div>
   ${g.p.length||g.s.length?bodyHTML(g.p,g.s):''}
   ${diagramHTML(id)}
@@ -847,7 +851,7 @@ const trunc=t=>t.length>70?t.slice(0,67)+'…':t;
 function jointState(sn){const neg=NEGPAIN.test(sn),pi=neg?-1:lastIdx(PAIN,sn),bi=lastIdx(BETTER,sn);
   if(pi<0&&bi<0&&!neg)return null;return pi>=0&&pi>bi?'pain':'better'}
 function noteScan(){const t=today(),from=addDays(t,-14),src=[],M=[];
-  for(const [d,v] of Object.entries(S.days))if(d>=from&&v&&v.note)src.push([d,'Diary',v.note]);
+  for(const [d,v] of Object.entries(S.days))if(d>=from&&v&&v.note)src.push([d,'Journal',v.note]);
   for(const d of sessDates())if(d>=from&&S.sessions[d].note)src.push([d,S.sessions[d].title,S.sessions[d].note]);
   src.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);
   const exs=exAll().filter(e=>e.id!=='walk').map(e=>({id:e.id,re:new RegExp('\\b'+e.name.toLowerCase().split(' / ')[0].replace(/\s*\(.*\)/,'').replace(/[^a-z0-9 ]/g,'.?').replace(/ /g,'[ -]')+'s?\\b','i')}));
@@ -934,13 +938,13 @@ const ICON={
  diary:'<path d="M6 3h11a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6zM6 3v18M10 8h5M10 12h5"/>',
  coach:'<path d="M4 5h16v11H9l-5 4z"/>',
  me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'};
-const TABS=[['today','Log'],['progress','Progress'],['diary','Diary'],['coach','Coach'],['me','Me']];
+const TABS=[['today','Log'],['progress','Progress'],['diary','Journal'],['coach','Coach'],['me','Me']];
 const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 const LINES=[n=>`Let\u2019s get it${n}.`,n=>`Hi${n}. Ready to move?`,n=>`Strong is built one set at a time${n}.`,n=>`Show up today${n}. That\u2019s the whole job.`,n=>`Small steps still count${n}.`,n=>`Progress, not perfection${n}.`,n=>`Every rep is a vote for who you\u2019re becoming${n}.`];
-let HERO=null;
+let HERO=null,BIGDOG=Math.random()<1/55;
 const LOGO='<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="var(--accent)"/><g fill="none" stroke="var(--accent-ink)" stroke-width="30" stroke-linecap="round"><path d="M176 170v172M336 170v172M118 204v104M394 204v104M176 256h160"/></g></svg>';
-function viewLanding(){const p=S.profile,n=p&&p.name?`, ${p.name}`:'',h=new Date().getHours();if(HERO==null)HERO=Math.floor(Math.random()*LINES.length);
+function viewLanding(){const p=S.profile,n=p&&p.name?`, ${BIGDOG?'Big Dog':p.name}`:'',h=new Date().getHours();if(HERO==null)HERO=Math.floor(Math.random()*LINES.length);
   if(!p)return `<section class="landing"><div class="logo">${LOGO}</div><p class="eyebrow">Welcome</p><h1 class="hero">Let\u2019s build your log.</h1><p class="upnext">Set up takes a minute. Everything stays on this device.</p><button class="btn big" data-act="enter">Get started</button></section>`;
   const t=today(),ws=monday(t),act=[...Array(7)].filter((_,i)=>isActive(S.sessions[addDays(ws,i)])).length,tot=sessDates().filter(d=>isActive(S.sessions[d])).length,rec=nextPlan();
   const eyebrow=(h<5?'Late night':h<12?'Good morning':h<17?'Good afternoon':'Good evening')+n;
@@ -991,7 +995,7 @@ function viewToday(){
   const sets=(ses.entries||[]).reduce((a,e)=>a+okSets(e).length,0),vol=volume(ses);
   const rtn=!ses.mob&&!ses.done?`<div class="row" style="flex-wrap:wrap">${!ses.r_warm&&!sets?`<button class="btn out sm grow" data-act="addwarm">+ ${MOB.warm.min} min warm-up</button>`:''}${!ses.r_core?`<button class="btn out sm grow" data-act="addcore">+ Core finisher</button>`:''}${!ses.r_cool?`<button class="btn out sm grow" data-act="addcool">+ Cooldown</button>`:''}</div>`:'';
   return head+`<div class="row between"><div class="grow"><h1>${esc(ses.title)}</h1><p class="sub">${fmtD(d,{weekday:'short',month:'short',day:'numeric'})} · ${sets} sets done${vol?` · ${Math.round(vol).toLocaleString()} lb moved`:''}</p></div>
-    <button class="btn sm ${ses.done?'out':''}" data-act="finish">${ses.done?'Reopen':'Finish'}</button></div>
+    <button class="${ses.done?'btn sm out':'irid'}" data-act="finish">${ses.done?'Reopen':'Finish'}</button></div>
     ${rtn}
     ${ses.done?`<div class="done">Workout saved. ${sets} sets${vol?`, ${Math.round(vol).toLocaleString()} lb total`:''}. Add how it felt below.</div>`:''}
     ${(ses.entries||[]).map(entryHTML).join('')}
@@ -1059,9 +1063,9 @@ function drawCharts(){
 function ensureDraft(d){if(!S.draft||S.draft.date!==d)S.draft={date:d,text:S.days[d]?.note||'',feel:S.days[d]?.feel||null}}
 function viewDiary(){const d=S.diaryDate;ensureDraft(d);const has=!!S.days[d];
   const dates=[...new Set([...Object.keys(S.days),...sessDates().filter(x=>S.sessions[x].note)])].sort().reverse().slice(0,120);
-  return `<h1>Diary</h1><div class="card stack"><label class="lbl">Date<input id="dd" type="date" value="${d}" max="${today()}"></label>
+  return `<h1>Journal</h1><div class="card stack"><label class="lbl">Date<input id="dd" type="date" value="${d}" max="${today()}"></label>
    <div class="chips feel" role="group" aria-label="How you felt">${['Rough','Low','OK','Good','Great'].map((l,i)=>`<button class="chip" data-act="dfeel:${i+1}" aria-pressed="${S.draft.feel===i+1}">${l}</button>`).join('')}</div>
-   <textarea id="dt" data-b="dt" placeholder="Sleep, soreness, mood, food, wins. Anything worth remembering." aria-label="Diary note">${esc(S.draft.text)}</textarea>
+   <textarea id="dt" data-b="dt" placeholder="Sleep, soreness, mood, food, wins. Anything worth remembering." aria-label="Journal note">${esc(S.draft.text)}</textarea>
    <div class="row"><button class="btn grow" data-act="savediary">Save note</button>${has?'<button class="btn out" data-act="deldiary">Delete</button>':''}</div></div>
    ${dates.length?dates.map(x=>{const dy=S.days[x],se=S.sessions[x];return `<article class="card entry"><div class="row between"><span class="date">${fmtD(x,{weekday:'short',month:'short',day:'numeric'})}</span>
      <span class="row">${dy?.feel?`<span class="badge">${['Rough','Low','OK','Good','Great'][dy.feel-1]}</span>`:''}${dy?`<button class="link" data-act="editday:${x}">Edit</button>`:''}</span></div>
@@ -1161,7 +1165,7 @@ const FAQ=[
 - Keep moving the arm gently inside the range that doesn't hurt.
 - When you return, start light with a comfortable grip and slow lowering, and stay pain free.
 - Get it checked if there is sharp pain, night pain, numbness or tingling down the arm, weakness, or it followed a fall.`],
-['How do my notes change what the app suggests?','notes diary keywords suggest words sore tired easy rest',`- The app reads your diary and workout notes from the last two weeks, on this device only.
+['How do my notes change what the app suggests?','notes journal diary keywords suggest words sore tired easy rest',`- The app reads your journal and workout notes from the last two weeks, on this device only.
 - Words like sore, tweaked or hurts next to knee, elbow, ankle or shoulder can suggest marking that joint as resting. Better or pain free can suggest resuming it.
 - Tired, exhausted or poor sleep can suggest a light walk day.
 - A note about an exercise (for example leg press felt easy) shows up right on that exercise.
@@ -1220,7 +1224,7 @@ function viewMe(){const p=S.profile;
   <div class="card stack"><h2>Joints and rest-day swaps</h2><p class="note">Turn on a joint when it needs a break. Exercises that load it get flagged, and new workouts swap them automatically. In a workout already started, tap Swap in the banner.</p>
    ${restChips()}${swapPreviewHTML()}
    <div class="chips"><button class="chip" data-act="togglehints" aria-pressed="${hintsOn()}">Let my notes suggest changes</button></div>
-   <p class="note">When on, words like “sore knee” or “tired” in your diary and workout notes can suggest resting a joint or taking a lighter day. You always confirm.</p></div>
+   <p class="note">When on, words like “sore knee” or “tired” in your journal and workout notes can suggest resting a joint or taking a lighter day. You always confirm.</p></div>
   <div class="card stack"><h2>Mobility</h2><p class="note">Routines you can add to any workout, or do on their own: a 10 minute warm-up, a 6 minute core finisher, a 5 minute cooldown, and a 25 minute mobility + core day. Dynamic moves go before lifting and longer holds go after. Find the buttons on the Log tab.</p>
    <div class="chips"><button class="chip" data-act="automob" aria-pressed="${!!S.profile.autoWarm}">Start workouts with a ${MOB.warm.min} min warm-up</button></div>
    <p class="note">${MOB.warm.name}: ${MOB.warm.items.map(i=>exById(i[0]).name).join(', ')}.<br>Cooldown: ${MOB.cool.items.map(i=>exById(i[0]).name).join(', ')}.</p></div>
@@ -1245,7 +1249,7 @@ function renderSheet(){const el=$('#sheet'),sh=S.sheet;if(!sh){el.innerHTML='';r
    <label class="lbl">What do you track?<select id="ct">${Object.entries(TL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label>
    <div class="row"><button class="btn grow" data-act="savecustom">Save</button><button class="btn out" data-act="closesheet">Cancel</button></div>`}
   else if(sh.k==='info'){body=infoHTML(sh.id,sh.from)}
-  else{body=`<div class="row between"><h2 style="margin:0">${sh.k==='swap'?'Swap exercise':sh.k==='guide'?'Exercise guide':'Add exercise'}</h2><button class="link" data-act="closesheet">Close</button></div>
+  else{body=`<div class="row between"><h2 style="margin:0">${sh.k==='swap'?'Swap exercise':sh.k==='guide'?'Exercise guide':'Add exercise'}</h2><button class="irid" data-act="closesheet">Close</button></div>
    <input id="sq" type="text" placeholder="Search exercises" value="${esc(sh.q||'')}" aria-label="Search exercises">
    <div class="chips">${['All',...GROUPS].map(g=>`<button class="chip" data-act="grp:${g}" aria-pressed="${(sh.g||'All')===g}">${g}</button>`).join('')}</div>
    <div class="stack" id="pl">${pickList()}</div><button class="btn out" data-act="newcustom">Create an exercise</button>`}

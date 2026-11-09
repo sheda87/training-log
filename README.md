@@ -8,11 +8,11 @@ A private workout tracker that runs in the phone browser and installs to the hom
 - **Flexible exercises**: weight and reps, reps only, hold time, weight and time, or cardio. Add your own.
 - **Swap suggestions**: when a joint is resting, a flagged exercise shows a suggested replacement with a one-line reason and a one-tap swap. The Swap sheet lists suggestions first.
 - **Joint rest markers** (knee, elbow, ankle, shoulder) flag exercises and swap them automatically in new workouts. Me shows exactly which exercises in your plan would change, and a banner swaps an already-started workout in one tap.
-- **Notes that help**: words like "sore knee", "shoulder tweak", "tired" or "leg press felt easy" in your diary and workout notes can suggest resting a joint, resuming it, a light walk day, or a weight change on that exercise. Nothing changes until you tap, it all stays on your device, and you can turn it off in Me.
+- **Notes that help**: words like "sore knee", "shoulder tweak", "tired" or "leg press felt easy" in your journal and workout notes can suggest resting a joint, resuming it, a light walk day, or a weight change on that exercise. Nothing changes until you tap, it all stays on your device, and you can turn it off in Me.
 - **Mobility and core**: a 10 minute warm-up, a 6 minute core finisher and a 5 minute cooldown you can add to any workout with one tap, plus a 25 minute mobility + core day that counts as an active day. Each move has a form guide. Optionally start every workout with the warm-up (Me tab).
 - **Weekly goal**: pick your active days per week (1 to 7) in the profile. It applies right away.
 - **Timer**: every timed set (planks, stretches, carries, cardio) has a play button. Get-ready countdown, seconds-to-goal, a beep at your goal, a Pause button, an automatic switch-sides cue for "each side" holds, and the screen stays awake. Done saves the time and ticks the set.
-- **Diary** notes by day, plus a note on every workout.
+- **Journal** notes by day, plus a note on every workout.
 - **Progress** charts: body weight against your goal, strength per exercise, active days per week.
 - **Heart rate and effort**: log minutes, average and peak heart rate on any workout, or import them from Apple Health (Me tab). You get a zone gauge and plain-language feedback on whether the effort was too low, typical or too high for the kind of workout, plus progress charts.
 - **Coach**: tips from your own numbers (pace, ready to add weight, stuck lifts) and answers to common questions. Works offline.
