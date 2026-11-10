@@ -56,3 +56,9 @@ To update the app later, replace `index.html` in the repo. To force devices to r
 
 ## Exercise diagrams
 Each free-weight, bodyweight and mobility exercise has simple stick-figure drawings (start and end positions) at the top of its guide sheet. They are drawn in code, work offline, and follow the written steps. They are sketches, not a substitute for the steps or a coach.
+
+## Animation and color themes
+Exercise diagrams now loop as a short animation at the top of the guide sheet (tap Pause to hold a pose; it stays still if your phone is set to reduce motion). Plank, side plank, deep squat hold, doorway stretch, arm circles and 90/90 show static start and end poses only.
+Me tab > Color theme switches between Classic and Mermaid. Warm-ups always sit first and cooldowns last, even if you add exercises later.
+
+Themes: Classic, Mermaid and Miami Vice (Me tab). Each has its own palette, iridescent button blend, app icon (icon-*.svg and icon-*-touch.png) and greetings. Mermaid has a 1 in 30 chance of a water pun; Miami Vice uses 80s greetings.

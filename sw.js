@@ -1,6 +1,6 @@
 // Network first, so updates arrive as soon as you are online; cached copy keeps the app working offline.
-const V = 'training-log-v11';
-const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const V = 'training-log-v13';
+const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'icon-classic.svg', 'icon-mermaid.svg', 'icon-miami.svg', 'icon-classic-touch.png', 'icon-mermaid-touch.png', 'icon-miami-touch.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
