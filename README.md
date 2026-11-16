@@ -62,3 +62,12 @@ Exercise diagrams now loop as a short animation at the top of the guide sheet (t
 Me tab > Color theme switches between Classic and Mermaid. Warm-ups always sit first and cooldowns last, even if you add exercises later.
 
 Themes: Classic, Mermaid and Miami Vice (Me tab). Each has its own palette, iridescent button blend, app icon (icon-*.svg and icon-*-touch.png) and greetings. Mermaid has a 1 in 30 chance of a water pun; Miami Vice uses 80s greetings.
+
+## Profile photo and sharing
+Me > Profile has an optional photo (cropped to a small square and kept on this device). On the Log tab, Share this workout makes a link (the workout is packed into the link, nothing is uploaded) or a picture card. A friend who opens the link sees the workout and can do it or save it under Me > Shared with me. Their weights are not copied.
+
+## Skills (calisthenics ladders)
+The Skills tab has five step-by-step ladders: Push, Pull, Legs, Core and Mobility. You pick your current step. When you hit the target (for example 3 x 12 reps or 3 x 45 sec) in your last two workouts, the app suggests moving up. 19 new exercises with guides; most have animated diagrams. Cossack squat has no diagram yet.
+
+## Day H: Home workout
+A fourth plan day for home: jump rope intervals, two 5 lb dumbbells and bodyweight. Legs, push, core and mobility pieces follow your current Skills step. It is not part of the A/B/C rotation.
