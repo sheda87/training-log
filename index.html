@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f1f2ee" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f1214" media="(prefers-color-scheme: dark)">
@@ -234,6 +234,23 @@ svg.gauge{width:100%;height:auto;display:block}.gauge text{fill:var(--ink-2);fon
 .tbar .tg{font-size:13px;color:var(--ink-2)}body.timing main{padding-bottom:230px}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:9px 12px;font-size:14px}
 .done{background:var(--good-soft);color:var(--good);border-radius:12px;padding:12px 14px;font-weight:600}
+/* keyboard stability */
+html{overflow-anchor:none;scroll-padding-block:90px 140px}
+input,textarea,select,.lbl input,.lbl select,.lbl textarea{scroll-margin-block:90px 140px;font-size:max(16px,1em)}
+.set .fld input{font-size:18px}
+body.kb nav.tabs,body.kb .tbar{display:none}
+body.kb{padding-bottom:calc(45vh)}
+/* timer stands out */
+.tbar{border:0;padding:14px;background:linear-gradient(var(--surface),var(--surface)) padding-box,var(--irid) border-box;border:3px solid transparent;background-size:auto,300% 100%;box-shadow:0 8px 30px var(--irid-glow),0 6px 24px rgba(0,0,0,.25);gap:8px}
+@media (prefers-reduced-motion:no-preference){.tbar{animation:irid 6s linear infinite}}
+.tbar .tt{font-size:56px;text-align:center}.tbar .tn{text-align:center;font-size:14px}.tbar .tg{text-align:center}
+.tbar .btn.irid{min-height:56px;font-size:20px;border-radius:14px}
+.tbar .row .btn.out,.tbar .row .chip{min-height:44px}
+body.timing main{padding-bottom:290px}
+.tick.play{background:var(--irid);background-size:300% 100%;border:0;color:#111;box-shadow:0 0 0 1.5px rgba(255,255,255,.55) inset,0 2px 10px var(--irid-glow)}
+@media (prefers-reduced-motion:no-preference){.tick.play{animation:irid 4s linear infinite}}
+.exfoot .link.timerlink{background:var(--irid);background-size:300% 100%;color:#111;font-weight:800;border-radius:10px;padding:0 14px;min-height:40px;box-shadow:0 2px 10px var(--irid-glow)}
+@media (prefers-reduced-motion:no-preference){.exfoot .link.timerlink{animation:irid 4s linear infinite}}
 @media (prefers-reduced-motion:no-preference){ .btn,.chip,.tick{transition:background .12s,border-color .12s} }
 [hidden]{display:none!important}
 .landing{min-height:calc(100dvh - 140px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:28px 0 8px}
@@ -716,7 +733,7 @@ const PLAN={
  A:{name:'Machines + hinge',items:[['leg-press',3,'8–12'],['chest-press-machine',3,'8–12'],['lat-pulldown',3,'8–12'],['db-rdl',3,'8–10'],['plank',2,'30–45 sec'],['pallof-press',2,'10 each side'],['hip-flexor-stretch',2,'30 sec each side']]},
  B:{name:'Intro to free weights',items:[['goblet-squat',3,'8–10'],['seated-cable-row',3,'8–12'],['db-shoulder-press',3,'8–10'],['kb-deadlift',3,'8–10'],['dead-bug',2,'8 each side'],['bird-dog',2,'8 each side'],['thoracic-rotation',2,'8 each side']]},
  C:{name:'Mixed day',items:[['leg-press',3,'10–12'],['incline-pushup',3,'6–12'],['db-row',3,'8–12'],['hip-thrust',3,'8–12'],['farmers-carry',3,'30–40 sec'],['side-plank',2,'20 sec each side'],['hamstring-stretch',2,'30 sec each side']]},
- H:{name:'Home workout',desc:'5 lb dumbbells, jump rope and bodyweight. Uses your Skills steps.',items:[['jump-rope',1,'5 min: 30 sec on, 30 sec off'],['@legs',3,''],['db-rdl',3,'12–15, slow'],['@push',3,''],['db-row',3,'12–15 each side'],['db-reverse-fly',2,'12–15'],['db-shoulder-press',2,'12–15'],['@core',3,''],['@mob',2,'']]}
+ H:{name:'Home workout',desc:'5 lb dumbbells, jump rope, a bench and bodyweight. Uses your Skills steps.',items:[['jump-rope',1,'5 min: 30 sec on, 30 sec off'],['@legs',3,''],['hip-thrust',3,'15, shoulders on the bench, 5 lb on your hips'],['db-rdl',3,'12–15, slow'],['@push',3,''],['db-row',3,'12–15 each side, hand on the bench'],['db-bench',2,'15–20 with 5 lb'],['db-reverse-fly',2,'12–15'],['@core',3,''],['@mob',2,'']]}
 };
 
 const MOB={
@@ -1084,7 +1101,8 @@ function timerBar(){let b=$('#tbar');if(!S.tmr){if(b)b.remove();document.body.cl
   if(!b){b=document.createElement('div');b.id='tbar';b.className='tbar';b.setAttribute('role','timer');document.body.appendChild(b)}
   const T=S.tmr,g=T.goal;
   b.innerHTML=`<div class="tn" id="tn"></div><div class="tt" id="tt">00:00</div><div class="pb"><i id="tp"></i></div>${g?`<div class="tg" id="tg">Goal ${g.lo}${g.hi?'–'+g.hi:''} sec${T.sides>1?' each side':''}</div>`:''}
-   <div class="row"><button class="btn grow" data-act="tstop" aria-label="Stop and save this set">Done</button><button class="btn out" data-act="tpause">${T.paused?'Resume':'Pause'}</button><button class="btn out" data-act="tcancel">Cancel</button><button class="chip" data-act="tmute" aria-pressed="${!(S.profile&&S.profile.timerMute)}" aria-label="Sound">Sound</button></div>`;
+   <button class="btn irid" style="width:100%" data-act="tstop" aria-label="Stop and save this set">Done · save set</button>
+   <div class="row"><button class="btn out grow" data-act="tpause">${T.paused?'Resume':'Pause'}</button><button class="btn out grow" data-act="tcancel">Cancel</button><button class="chip" data-act="tmute" aria-pressed="${!(S.profile&&S.profile.timerMute)}" aria-label="Sound">Sound</button></div>`;
   document.body.classList.add('timing');timerTick()}
 function timerTick(){const T=S.tmr;if(!T)return;const ms=(T.paused||Date.now())-T.t0,tt=$('#tt'),tn=$('#tn'),tp=$('#tp'),tg=$('#tg');if(!tt)return;
   if(ms<0){const r=Math.ceil(-ms/1000);tn.textContent=`${T.round>1?'Switch sides':'Get ready'}: ${T.name}`;tt.textContent=String(r);tp.style.width='0';
@@ -1204,7 +1222,7 @@ function entryHTML(e,ei){
    ${e.sets.map((s,si)=>`<div class="set ${s.ok?'ok':''}"><span class="n">${si+1}</span>${F.map(([k,u])=>{const pv=ls[si]?.[k]??ls[ls.length-1]?.[k];
      return `<label class="fld"><input type="text" inputmode="decimal" data-b="set" data-ei="${ei}" data-si="${si}" data-k="${k}" value="${esc(s[k]??'')}" placeholder="${esc(pv??'')}" aria-label="Set ${si+1} ${u}"><i>${u}</i></label>`}).join('')}
      ${TIMED[e.type]?`<button class="tick play" data-act="tstart:${ei}:${si}" aria-label="Start timer for set ${si+1}"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z"/></svg></button>`:''}<button class="tick" data-act="tick:${ei}:${si}" aria-pressed="${!!s.ok}" aria-label="Set ${si+1} done">${CHECK}</button><button class="x" data-act="delset:${ei}:${si}" aria-label="Remove set ${si+1}">×</button></div>`).join('')}
-   <div class="exfoot"><button class="link" data-act="addset:${ei}">Add set</button><button class="link" data-act="info:${esc(e.ex)}">How to</button>${TIMED[e.type]?`<button class="link" data-act="tstart:${ei}">Timer</button>`:''}<button class="link" data-act="swap:${ei}">Swap</button><button class="link bad" data-act="rm:${ei}">Remove</button></div></section>`}
+   <div class="exfoot"><button class="link" data-act="addset:${ei}">Add set</button><button class="link" data-act="info:${esc(e.ex)}">How to</button>${TIMED[e.type]?`<button class="link timerlink" data-act="tstart:${ei}">Start timer</button>`:''}<button class="link" data-act="swap:${ei}">Swap</button><button class="link bad" data-act="rm:${ei}">Remove</button></div></section>`}
 
 function viewProgress(){
   const W=wArr(),p=S.profile,latest=W.length?W[W.length-1].lb:null,startLb=p.startLb??(W[0]?.lb),
@@ -1464,7 +1482,9 @@ function render(force){
   if(!S.profile){tabs.hidden=true;v.innerHTML=viewSetup();return}
   tabs.hidden=false;
   tabs.firstElementChild.innerHTML=TABS.map(([k,l])=>`<button data-act="tab:${k}" ${S.tab===k?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${l}${k==='skills'&&anyReady()?'<i class="dot" aria-label="Ready to move up"></i>':''}</button>`).join('');
+  const y0=window.scrollY;
   v.innerHTML=({today:viewToday,progress:viewProgress,skills:viewSkills,diary:viewDiary,coach:viewCoach,me:viewMe})[S.tab]();
+  if(Math.abs(window.scrollY-y0)>1)window.scrollTo(0,y0);
   if(S.tab==='progress')drawCharts();
   if(S.sheet&&!$('#sheet').firstChild)renderSheet();
 }
@@ -1727,6 +1747,18 @@ function viewSkills(){const any=TRACKS.some(t=>(S.tracks||{})[t.id]);
   <p class="note">The target counts only sets you tick as done. If a joint is resting in the Log tab, the step is swapped for an easier one. Holds are timed, so use the play button on each set.</p>`}
 function addSkill(tid){const tr=TRACKS.find(t=>t.id===tid),st=(S.tracks||{})[tid];if(!tr||!st||!tr.steps[st.lvl])return false;const[id,sets,tg,side]=tr.steps[st.lvl];
   if(!cur())startSession('blank');const en=mkEntry(id,sets,stepTxt(id,sets,tg,side));if(!cur().entries.some(x=>x.ex===en.ex))addEntry(cur(),en);saveSession(S.date);return true}
+
+/* ---------- keyboard stability ---------- */
+(function(){const vv=window.visualViewport;let base=vv?vv.height:innerHeight,t=0,last=null;
+  const isF=e=>e&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.tagName);
+  function kbd(){const open=vv&&base-vv.height>140&&isF(document.activeElement);document.body.classList.toggle('kb',!!open)}
+  function reveal(){const e=document.activeElement;if(!isF(e))return;const h=vv?vv.height:innerHeight,r=e.getBoundingClientRect(),top=vv?vv.offsetTop:0;
+    if(r.top<top+70||r.bottom>top+h-24){window.scrollBy({top:r.top-(top+h*.35),behavior:'auto'})}}
+  document.addEventListener('focusin',e=>{if(!isF(e.target))return;last=e.target;clearTimeout(t);t=setTimeout(()=>{kbd();reveal()},320)});
+  document.addEventListener('focusout',()=>setTimeout(()=>{if(!isF(document.activeElement)){document.body.classList.remove('kb');base=vv?vv.height:innerHeight}},80));
+  if(vv){vv.addEventListener('resize',()=>{if(!isF(document.activeElement)&&vv.height>base-140)base=Math.max(base,vv.height);clearTimeout(t);t=setTimeout(()=>{kbd();reveal()},120)})}
+  addEventListener('orientationchange',()=>setTimeout(()=>{base=vv?vv.height:innerHeight},400));
+})();
 
 /* ---------- boot ---------- */
 setSync('load');render(true);loadLocal();checkIncoming();

@@ -70,4 +70,8 @@ Me > Profile has an optional photo (cropped to a small square and kept on this d
 The Skills tab has five step-by-step ladders: Push, Pull, Legs, Core and Mobility. You pick your current step. When you hit the target (for example 3 x 12 reps or 3 x 45 sec) in your last two workouts, the app suggests moving up. 19 new exercises with guides; most have animated diagrams. Cossack squat has no diagram yet.
 
 ## Day H: Home workout
-A fourth plan day for home: jump rope intervals, two 5 lb dumbbells and bodyweight. Legs, push, core and mobility pieces follow your current Skills step. It is not part of the A/B/C rotation.
+A fourth plan day for home: jump rope intervals, two 5 lb dumbbells, a bench and bodyweight. Legs, push, core and mobility pieces follow your current Skills step. It is not part of the A/B/C rotation.
+
+## Keyboard and timer (v19)
+- Typing no longer makes the screen jump: renders keep your scroll position, inputs are at least 16 px (no iPhone zoom), the tab bar and timer bar hide while the keyboard is up, and the edited field is gently kept in view.
+- The timer bar has an iridescent border, a big iridescent "Done · save set" button, and the play buttons and "Start timer" links are iridescent so they're easy to find.
